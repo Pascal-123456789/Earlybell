@@ -75,3 +75,17 @@
 .premium-waitlist-form .subscribe-input {
   flex: 1;
 }
+
+@media (max-width: 768px) {
+  .premium-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-waitlist-form {
+    flex-direction: column;
+  }
+
+  .premium-waitlist-form .subscribe-input {
+    width: 100%;
+  }
+}

@@ -140,13 +140,25 @@ const TickerDetailModal = ({ modalData, modalLoading, modalError, setModalData, 
 
 // --- MAIN APP COMPONENT ---
 export default function App() {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
     const [currentView, setCurrentView] = useState('landing');
     const [modalData, setModalData] = useState(null);
     const [modalLoading, setModalLoading] = useState(false);
     const [modalError, setModalError] = useState(null);
     const [polymarketEvents, setPolymarketEvents] = useState([]);
     const [showHelp, setShowHelp] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    // Auto-close sidebar on resize to mobile
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth <= 768;
+            setIsMobile(mobile);
+            if (mobile) setIsSidebarOpen(false);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Fetch Polymarket events
     useEffect(() => {
@@ -253,6 +265,10 @@ export default function App() {
                     </div>
                     <div className="hype-indicator"><FaFire /> <span>Scanner Online</span></div>
                 </div>
+            )}
+
+            {isMobile && isSidebarOpen && currentView !== 'landing' && (
+                <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
             )}
 
             <div className={`main-content ${currentView === 'landing' ? 'landing' : isSidebarOpen ? 'shifted' : 'full'}`}>

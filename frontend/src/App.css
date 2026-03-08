@@ -456,7 +456,7 @@ body {
     color: #e0e0e0;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 900px) {
     .modal-content {
         min-width: 700px;
     }
@@ -895,7 +895,7 @@ body {
     text-align: left;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 900px) {
     .help-modal {
         min-width: 700px;
     }
@@ -1219,6 +1219,66 @@ body {
 }
 
 @media (max-width: 768px) {
+    /* Sidebar: overlay on mobile, not push */
+    .sidebar.open {
+        position: fixed;
+        z-index: 1100;
+        width: var(--sidebar-width-open);
+        height: 100vh;
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+    }
+
+    /* Main content: never shift on mobile */
+    .main-content.shifted {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .main-content.full {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    /* Grids: single column on mobile */
+    .sectors-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .data-list {
+        grid-template-columns: 1fr;
+    }
+
+    /* Landing page step cards */
+    .how-it-works-steps {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .step-card {
+        min-width: unset;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    /* Landing page text sizing */
+    .landing-title {
+        font-size: 2rem;
+    }
+
+    .landing-tagline {
+        font-size: 1.1rem;
+    }
+
+    /* Skeleton loaders */
     .skeleton-stats {
         flex-wrap: wrap;
     }
