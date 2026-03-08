@@ -88,7 +88,19 @@ const WatchlistView = () => {
       </div>
 
       {loading ? (
-        <h3 className="loading-message">Loading watchlist data...</h3>
+        <div className="data-list scanner-grid">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="skeleton-card">
+              <div className="skeleton-line title" />
+              <div className="skeleton-line score" />
+              <div className="skeleton-line badge" />
+              <div className="skeleton-line price" />
+              <div className="skeleton-line bar" />
+              <div className="skeleton-line bar" />
+              <div className="skeleton-line bar" />
+            </div>
+          ))}
+        </div>
       ) : watchlist.length === 0 ? (
         <div className="empty-state">
           <h3>No tickers watched</h3>

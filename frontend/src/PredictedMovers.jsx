@@ -51,7 +51,28 @@ const PredictedMovers = () => {
       </div>
 
       {loading ? (
-        <h3 className="loading-message">Analyzing price momentum and levels...</h3>
+        <>
+          <div className="skeleton-stats">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="skeleton-stat-box">
+                <div className="skeleton-line number" />
+                <div className="skeleton-line label" />
+              </div>
+            ))}
+          </div>
+          <div className="movers-grid">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-line title" />
+                <div className="skeleton-line score" />
+                <div className="skeleton-line badge" />
+                <div className="skeleton-line price" />
+                <div className="skeleton-line text" />
+                <div className="skeleton-line text" />
+              </div>
+            ))}
+          </div>
+        </>
       ) : error ? (
         <div className="empty-state">
           <h3>Unable to load movers</h3>

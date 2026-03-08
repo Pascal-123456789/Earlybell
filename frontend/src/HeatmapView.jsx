@@ -150,7 +150,22 @@ const HeatmapView = ({ onTickerClick }) => {
       </div>
 
       {loading ? (
-        <h3 className="loading-message">Loading heatmap...</h3>
+        <div className="heatmap-sectors">
+          {Object.entries(SECTOR_MAP).map(([sector, tickers]) => (
+            <div key={sector} className="heatmap-sector">
+              <div className="skeleton-line skeleton-sector-label" />
+              <div className="heatmap-sector-grid">
+                {tickers.map(({ ticker }) => (
+                  <div key={ticker} className="skeleton-tile">
+                    <div className="skeleton-line ticker" />
+                    <div className="skeleton-line name" />
+                    <div className="skeleton-line change" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       ) : !hasData ? (
         <div className="empty-state">
           <h3>No data available</h3>

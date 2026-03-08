@@ -55,7 +55,28 @@ const AlertDashboard = () => {
       </div>
 
       {loading ? (
-        <h3 className="loading-message">Loading alerts...</h3>
+        <>
+          <div className="skeleton-stats">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="skeleton-stat-box">
+                <div className="skeleton-line number" />
+                <div className="skeleton-line label" />
+              </div>
+            ))}
+          </div>
+          <div className="data-list alert-grid">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-line title" />
+                <div className="skeleton-line score" />
+                <div className="skeleton-line badge" />
+                <div className="skeleton-line bar" />
+                <div className="skeleton-line bar" />
+                <div className="skeleton-line text" />
+              </div>
+            ))}
+          </div>
+        </>
       ) : (
         <>
           {/* Summary Stats */}
