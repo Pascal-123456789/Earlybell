@@ -211,7 +211,7 @@ export default function App() {
                     </div>
                 );
             case 'dashboard':
-                return <MarketScanner />;
+                return <MarketScanner polymarketEvents={polymarketEvents} />;
             case 'movers':
                 return <PredictedMovers />;
             case 'watchlist':

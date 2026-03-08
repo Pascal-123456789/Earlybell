@@ -23,10 +23,6 @@ const AlertDashboard = () => {
     };
 
     fetchAlerts();
-
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(fetchAlerts, 5 * 60 * 1000);
-    return () => clearInterval(interval);
   }, []);
 
   // Get color class based on alert level
@@ -136,7 +132,7 @@ const AlertDashboard = () => {
           </div>
 
           <footer className="dashboard-footer">
-            Monitoring {alerts.length} tickers. Data refreshes every 5 minutes.
+            Monitoring {alerts.length} tickers. Backend updates hourly.
           </footer>
         </>
       )}

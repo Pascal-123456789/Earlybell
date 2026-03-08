@@ -5,7 +5,7 @@ import './MarketScanner.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
-const MarketScanner = () => {
+const MarketScanner = ({ polymarketEvents = [] }) => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAlert, setSelectedAlert] = useState(null);
@@ -13,7 +13,6 @@ const MarketScanner = () => {
   const [lastScanned, setLastScanned] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [polymarketEvents, setPolymarketEvents] = useState([]);
   const [watchlist, setWatchlist] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('foega_watchlist')) || [];
@@ -79,15 +78,6 @@ const MarketScanner = () => {
     };
 
     fetchAlerts();
-    const interval = setInterval(fetchAlerts, 5 * 60 * 1000);
-
-    // Fetch Polymarket events
-    fetch(`${API_BASE_URL}/polymarket/events`)
-      .then(res => res.json())
-      .then(events => { if (Array.isArray(events)) setPolymarketEvents(events); })
-      .catch(err => console.error('Polymarket fetch error:', err));
-
-    return () => clearInterval(interval);
   }, []);
 
   const sortedAlerts = [...alerts].sort((a, b) => {
@@ -275,7 +265,7 @@ const MarketScanner = () => {
           </div>
 
           <footer className="dashboard-footer">
-            Monitoring {alerts.length} stocks. Auto-refresh every 5 minutes.
+            Monitoring {alerts.length} stocks. Backend updates hourly.
             {lastScanned && (
               <span className="last-scanned">
                 {' '}| Last scanned: {lastScanned.toLocaleString()}
