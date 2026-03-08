@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope } from 'react-icons/fa';
+import { FaFire, FaBars, FaRocket, FaStar, FaTh, FaEnvelope } from 'react-icons/fa';
 import MarketScanner from './MarketScanner';
 import PredictedMovers from './PredictedMovers';
 import WatchlistView from './WatchlistView';
 import HeatmapView from './HeatmapView';
+import PremiumAccess from './PremiumAccess';
 
 // --- COMPONENT: HelpModal ---
 const HelpModal = ({ onClose }) => (
@@ -64,18 +65,6 @@ const HelpModal = ({ onClose }) => (
 );
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-
-// --- COMPONENT: PremiumComingSoon ---
-const PremiumComingSoon = () => (
-    <div className="content-area premium-page">
-        <h2>Premium Analysis</h2>
-        <div className="coming-soon-card">
-            <FaLock size={48} color="#444" />
-            <h3>Coming Soon</h3>
-            <p>Walk-forward backtesting, optimal strategy parameters, and AI-driven trade signals are under development.</p>
-        </div>
-    </div>
-);
 
 // --- COMPONENT: TickerDetailModal ---
 const TickerDetailModal = ({ modalData, modalLoading, modalError, setModalData, setModalError, polymarketEvents }) => {
@@ -219,7 +208,7 @@ export default function App() {
             case 'heatmap':
                 return <HeatmapView onTickerClick={fetchTickerDetails} />;
             case 'premium':
-                return <PremiumComingSoon />;
+                return <PremiumAccess />;
             default:
                 return null;
         }

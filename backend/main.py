@@ -934,6 +934,29 @@ async def subscribe(req: SubscribeRequest):
         return {"error": str(e)}
 
 
+class WaitlistRequest(BaseModel):
+    email: str
+
+@app.post("/waitlist/premium")
+async def waitlist_premium(req: WaitlistRequest):
+    """Add an email to the premium feature waitlist."""
+    if not supabase:
+        return {"error": "Database not configured"}
+
+    if not req.email:
+        return {"error": "Email is required"}
+
+    try:
+        supabase.table('premium_waitlist').upsert(
+            {"email": req.email},
+            on_conflict="email",
+        ).execute()
+        return {"status": "joined", "email": req.email}
+    except Exception as e:
+        print(f"Waitlist error: {e}")
+        return {"error": str(e)}
+
+
 def send_critical_alert_emails(critical_tickers: List[str]):
     """Send email alerts for tickers that hit CRITICAL level."""
     if not supabase or not SMTP_HOST:

@@ -1,0 +1,77 @@
+.premium-access-page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.premium-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.premium-header h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.premium-tagline {
+  color: #aaa;
+  font-size: 1.1rem;
+}
+
+.premium-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.premium-feature-card {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.premium-feature-icon {
+  color: var(--foega-primary-color, #00ff84);
+  margin-bottom: 1rem;
+}
+
+.premium-feature-card h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+}
+
+.premium-feature-card p {
+  color: #aaa;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.premium-waitlist-section {
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+.premium-waitlist-section h3 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.premium-waitlist-section > p {
+  color: #aaa;
+  margin-bottom: 1.25rem;
+}
+
+.premium-waitlist-form {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.premium-waitlist-form .subscribe-input {
+  flex: 1;
+}
