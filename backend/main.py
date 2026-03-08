@@ -82,12 +82,8 @@ SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASS = os.getenv("SMTP_PASS")
 SMTP_FROM = os.getenv("SMTP_FROM", SMTP_USER or "")
 
-# --- RATE LIMIT & DATE ---
+# --- RATE LIMIT ---
 FINNHUB_CALL_DELAY = 1.5 # ~40 calls/min, safely under Finnhub's 60/min limit
-
-TODAY = date.today()
-SEVEN_DAYS_AGO = (TODAY - timedelta(days=7)).isoformat()
-TODAY_STR = TODAY.isoformat()
 
 # --- TICKERS (Separated for better normalization) ---
 STOCK_TICKERS = [
@@ -121,6 +117,12 @@ async def startup_event():
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         print("Supabase client initialized successfully.")
     
+    # Log API key status
+    if FINNHUB_API_KEY:
+        print(f"Finnhub API key loaded ({len(FINNHUB_API_KEY)} chars)")
+    else:
+        print("WARNING: FINNHUB_API_KEY not set — sentiment_score and news_count will be 0")
+
     # Start the Background Loop
     asyncio.create_task(scheduled_update_loop())
     
@@ -170,41 +172,50 @@ async def async_news_sentiment_and_volume(ticker: str) -> Dict[str, Union[str, i
     """
     Fetches news, calculates sentiment, and counts volume using Finnhub.
     """
+    if not FINNHUB_API_KEY:
+        print(f"FINNHUB: No API key set — skipping news fetch for {ticker}")
+        return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
+
     await asyncio.sleep(FINNHUB_CALL_DELAY)
-    
+
     ticker = ticker.upper()
+    # Compute dates dynamically (not at module load) so long-running servers stay current
+    today_str = date.today().isoformat()
+    seven_days_ago = (date.today() - timedelta(days=7)).isoformat()
     url = (
         f"https://finnhub.io/api/v1/company-news?symbol={ticker}&"
-        f"from={SEVEN_DAYS_AGO}&to={TODAY_STR}&token={FINNHUB_API_KEY}"
+        f"from={seven_days_ago}&to={today_str}&token={FINNHUB_API_KEY}"
     )
-    
+
     try:
         response = await CLIENT.get(url, timeout=10)
         response.raise_for_status()
         news_data = response.json()
         article_count = len(news_data)
-        
+
         combined_text = ' '.join([
             (article.get('headline', '') + ' ' + article.get('summary', ''))
             for article in news_data if article.get('headline')
         ])
-        
+
         sentiment_score = calculate_sentiment(combined_text)
-        
+
         return {
             "ticker": ticker,
             "news_raw": article_count,
             "social_raw": sentiment_score
         }
-        
+
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 429:
-            print(f"Finnhub API Error: Rate Limit exceeded for {ticker}.")
+            print(f"FINNHUB: Rate limit exceeded for {ticker}")
+        elif e.response.status_code in (401, 403):
+            print(f"FINNHUB: Auth error for {ticker} (status {e.response.status_code}) — check FINNHUB_API_KEY")
         else:
-            print(f"Finnhub API Status Error for {ticker}: {e.response.status_code}.")
+            print(f"FINNHUB: HTTP {e.response.status_code} for {ticker}")
         return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
     except Exception as e:
-        print(f"Finnhub API General Error for {ticker}: {type(e).__name__}: {e}")
+        print(f"FINNHUB: Error for {ticker}: {type(e).__name__}: {e}")
         return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
 
 # ---------------------------
@@ -654,8 +665,13 @@ async def scan_for_alerts():
             item["current_price"] = 0
             item["price_change_pct"] = 0
 
-    if finnhub_errors > 0:
-        print(f"WARNING: {finnhub_errors}/{len(results)} Finnhub calls failed (likely rate-limited)")
+    # Log sentiment results summary
+    with_news = [i for i in results if i.get("news_count", 0) > 0]
+    print(f"FINNHUB SUMMARY: {len(with_news)}/{len(results)} tickers had news articles, {finnhub_errors} errors")
+    if with_news:
+        top = sorted(with_news, key=lambda x: x.get("news_count", 0), reverse=True)[:3]
+        for t in top:
+            print(f"  {t['ticker']}: {t['news_count']} articles, sentiment={t['sentiment_score']:.3f}")
 
     # Save to Supabase — skip tickers with $0 price (bad data)
     if supabase:
