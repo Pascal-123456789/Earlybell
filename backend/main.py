@@ -168,17 +168,25 @@ def calculate_sentiment(text: str) -> float:
     analysis = TextBlob(text)
     return analysis.sentiment.polarity
 
-async def async_news_sentiment_and_volume(ticker: str) -> Dict[str, Union[str, int, float]]:
+async def async_news_sentiment_and_volume(ticker: str, debug: bool = False) -> Dict[str, Union[str, int, float]]:
     """
     Fetches news, calculates sentiment, and counts volume using Finnhub.
+    Finnhub company-news only works for stock symbols, not crypto (BTC-USD etc).
     """
+    ticker = ticker.upper()
+
+    # Skip crypto tickers — Finnhub company-news doesn't support them
+    if "-" in ticker:
+        if debug:
+            print(f"FINNHUB [{ticker}]: Skipping — crypto ticker not supported by company-news endpoint")
+        return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
+
     if not FINNHUB_API_KEY:
-        print(f"FINNHUB: No API key set — skipping news fetch for {ticker}")
+        print(f"FINNHUB [{ticker}]: No API key set — skipping")
         return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
 
     await asyncio.sleep(FINNHUB_CALL_DELAY)
 
-    ticker = ticker.upper()
     # Compute dates dynamically (not at module load) so long-running servers stay current
     today_str = date.today().isoformat()
     seven_days_ago = (date.today() - timedelta(days=7)).isoformat()
@@ -187,11 +195,30 @@ async def async_news_sentiment_and_volume(ticker: str) -> Dict[str, Union[str, i
         f"from={seven_days_ago}&to={today_str}&token={FINNHUB_API_KEY}"
     )
 
+    if debug:
+        masked_key = FINNHUB_API_KEY[:4] + "..." + FINNHUB_API_KEY[-4:] if len(FINNHUB_API_KEY) > 8 else "***"
+        print(f"FINNHUB [{ticker}]: URL=https://finnhub.io/api/v1/company-news?symbol={ticker}&from={seven_days_ago}&to={today_str}&token={masked_key}")
+
     try:
         response = await CLIENT.get(url, timeout=10)
+
+        if debug:
+            print(f"FINNHUB [{ticker}]: HTTP {response.status_code}, content-type={response.headers.get('content-type', 'unknown')}, body_length={len(response.content)}")
+
         response.raise_for_status()
         news_data = response.json()
+
+        if not isinstance(news_data, list):
+            print(f"FINNHUB [{ticker}]: Unexpected response type: {type(news_data).__name__} — {str(news_data)[:200]}")
+            return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
+
         article_count = len(news_data)
+
+        if debug:
+            print(f"FINNHUB [{ticker}]: {article_count} articles returned")
+            if article_count > 0:
+                first = news_data[0]
+                print(f"FINNHUB [{ticker}]: First article: headline={first.get('headline', '')[:80]}")
 
         combined_text = ' '.join([
             (article.get('headline', '') + ' ' + article.get('summary', ''))
@@ -199,6 +226,9 @@ async def async_news_sentiment_and_volume(ticker: str) -> Dict[str, Union[str, i
         ])
 
         sentiment_score = calculate_sentiment(combined_text)
+
+        if debug:
+            print(f"FINNHUB [{ticker}]: TextBlob sentiment={sentiment_score:.4f}, text_length={len(combined_text)}")
 
         return {
             "ticker": ticker,
@@ -208,14 +238,18 @@ async def async_news_sentiment_and_volume(ticker: str) -> Dict[str, Union[str, i
 
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 429:
-            print(f"FINNHUB: Rate limit exceeded for {ticker}")
+            print(f"FINNHUB [{ticker}]: Rate limit exceeded (429)")
         elif e.response.status_code in (401, 403):
-            print(f"FINNHUB: Auth error for {ticker} (status {e.response.status_code}) — check FINNHUB_API_KEY")
+            print(f"FINNHUB [{ticker}]: Auth error (status {e.response.status_code}) — check FINNHUB_API_KEY")
+            if debug:
+                print(f"FINNHUB [{ticker}]: Response body: {e.response.text[:300]}")
         else:
-            print(f"FINNHUB: HTTP {e.response.status_code} for {ticker}")
+            print(f"FINNHUB [{ticker}]: HTTP {e.response.status_code}")
+            if debug:
+                print(f"FINNHUB [{ticker}]: Response body: {e.response.text[:300]}")
         return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
     except Exception as e:
-        print(f"FINNHUB: Error for {ticker}: {type(e).__name__}: {e}")
+        print(f"FINNHUB [{ticker}]: {type(e).__name__}: {e}")
         return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
 
 # ---------------------------
@@ -631,7 +665,7 @@ async def scan_for_alerts():
     
     # ADD: Sentiment + Price for each ticker
     finnhub_errors = 0
-    for item in results:
+    for idx, item in enumerate(results):
         ticker = item["ticker"]
 
         # Add sentiment (with rate-limit tracking)
@@ -639,10 +673,13 @@ async def scan_for_alerts():
             sentiment_data = await async_news_sentiment_and_volume(ticker)
             item["sentiment_score"] = sentiment_data.get("social_raw", 0.0)
             item["news_count"] = sentiment_data.get("news_raw", 0)
+            if item["news_count"] > 0:
+                print(f"  [{idx+1}/{len(results)}] {ticker}: {item['news_count']} articles, sentiment={item['sentiment_score']:.3f}")
         except Exception as e:
             item["sentiment_score"] = 0.0
             item["news_count"] = 0
             finnhub_errors += 1
+            print(f"  [{idx+1}/{len(results)}] {ticker}: EXCEPTION {type(e).__name__}: {e}")
 
         # Add price — try info first, fall back to history()
         try:
@@ -999,6 +1036,25 @@ def send_critical_alert_emails(critical_tickers: List[str]):
             print(f"Alert email sent to {sub['email']} for {ticker_list}")
         except Exception as e:
             print(f"SMTP error sending to {sub['email']}: {e}")
+
+
+@app.get("/debug/finnhub/{ticker}")
+async def debug_finnhub(ticker: str):
+    """Debug endpoint: test Finnhub API call for a single ticker with full logging."""
+    ticker = ticker.upper()
+    print(f"\n=== DEBUG FINNHUB: Testing {ticker} ===")
+    print(f"FINNHUB_API_KEY present: {bool(FINNHUB_API_KEY)}")
+    if FINNHUB_API_KEY:
+        print(f"FINNHUB_API_KEY length: {len(FINNHUB_API_KEY)}")
+
+    result = await async_news_sentiment_and_volume(ticker, debug=True)
+    print(f"=== DEBUG FINNHUB: Result for {ticker}: {result} ===\n")
+    return {
+        "ticker": ticker,
+        "api_key_set": bool(FINNHUB_API_KEY),
+        "api_key_length": len(FINNHUB_API_KEY) if FINNHUB_API_KEY else 0,
+        "result": result,
+    }
 
 
 @app.get("/debug/social")
