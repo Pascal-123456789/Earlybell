@@ -67,6 +67,7 @@ const PremiumAccess = () => {
       <div className="premium-waitlist-section">
         <h3>Get Early Access</h3>
         <p>Join the waitlist and be the first to know when premium features launch.</p>
+        <p className="waitlist-social-proof">Join 50+ traders already on the waitlist.</p>
         <form className="premium-waitlist-form" onSubmit={handleSubmit}>
           <input
             type="email"
@@ -81,7 +82,7 @@ const PremiumAccess = () => {
           </button>
         </form>
         {status === 'success' && (
-          <p className="subscribe-msg success">You're on the list! We'll notify you when premium launches.</p>
+          <p className="subscribe-msg success">You're on the list! We'll be in touch soon.</p>
         )}
         {status === 'error' && (
           <p className="subscribe-msg error">Something went wrong. Please try again.</p>

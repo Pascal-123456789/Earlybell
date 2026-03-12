@@ -66,6 +66,13 @@
   margin-bottom: 1.25rem;
 }
 
+.waitlist-social-proof {
+  color: var(--foega-primary-color, #00ff84);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
 .premium-waitlist-form {
   display: flex;
   gap: 0.5rem;
