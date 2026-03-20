@@ -420,9 +420,9 @@ const MarketScanner = ({ polymarketEvents = [] }) => {
                     <Tooltip
                       contentStyle={{ background: '#1a1a1a', border: '1px solid #444', borderRadius: 6 }}
                       labelStyle={{ color: '#aaa' }}
-                      itemStyle={{ color: '#00ff88' }}
+                      itemStyle={{ color: '#22c55e' }}
                     />
-                    <Line type="monotone" dataKey="score" stroke="#00ff88" strokeWidth={2} dot={{ r: 3, fill: '#00ff88' }} />
+                    <Line type="monotone" dataKey="score" stroke="#22c55e" strokeWidth={2} dot={{ r: 3, fill: '#22c55e' }} />
                   </LineChart>
                 </ResponsiveContainer>
               )}

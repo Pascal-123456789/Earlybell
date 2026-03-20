@@ -34,7 +34,7 @@
 }
 
 .premium-feature-icon {
-  color: var(--foega-primary-color, #00ff84);
+  color: var(--foega-primary-color, #22c55e);
   margin-bottom: 1rem;
 }
 
@@ -67,7 +67,7 @@
 }
 
 .waitlist-social-proof {
-  color: var(--foega-primary-color, #00ff84);
+  color: var(--foega-primary-color, #22c55e);
   font-size: 0.9rem;
   font-weight: 600;
   margin-bottom: 1rem;

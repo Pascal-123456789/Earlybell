@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope } from 'react-icons/fa';
+import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope, FaGithub } from 'react-icons/fa';
 import MarketScanner from './MarketScanner';
 import PredictedMovers from './PredictedMovers';
 import WatchlistView from './WatchlistView';
@@ -183,11 +183,11 @@ export default function App() {
             case 'landing':
                 return (
                     <div className="content-area landing-page">
-                        <h1 className="landing-title">Welcome to Foega Market Scanner</h1>
-                        <p className="landing-tagline">Real-time market activity monitoring with options flow, volume analysis & sentiment tracking</p>
-                        <p>Our unified platform combines institutional-grade signals to detect unusual market activity before it trends.</p>
+                        <h1 className="landing-title">Foega Market Scanner</h1>
+                        <p className="landing-tagline">Track unusual options flow, volume spikes, and social sentiment across 49 US stocks</p>
+                        <p>An open-source tool that aggregates publicly available market signals into a single dashboard, updated hourly.</p>
                         <button className="main-cta landing-button" onClick={() => setCurrentView('dashboard')}>
-                            View Live Market Scanner <FaFire />
+                            Open Scanner <FaFire />
                         </button>
 
                         <div className="how-it-works">
@@ -195,20 +195,29 @@ export default function App() {
                             <div className="how-it-works-steps">
                                 <div className="step-card">
                                     <span className="step-number">1</span>
-                                    <p>We scan 50 stocks every hour for unusual options flow, volume spikes & social buzz</p>
+                                    <p>Every hour, we pull options flow, trading volume, and Reddit mention data for 49 tickers</p>
                                 </div>
                                 <div className="step-card">
                                     <span className="step-number">2</span>
-                                    <p>Our algorithm scores each signal 0-10 and combines them into an alert score</p>
+                                    <p>Each signal is scored 0-10 and combined into a weighted alert score (40% options, 35% volume, 25% social)</p>
                                 </div>
                                 <div className="step-card">
                                     <span className="step-number">3</span>
-                                    <p>Stocks hitting HIGH or CRITICAL deserve a closer look — act on your own research</p>
+                                    <p>High-scoring tickers may warrant further research — this is a screening tool, not financial advice</p>
                                 </div>
                             </div>
                         </div>
 
-                        <p className="landing-footer">Professional tools for active traders and investors</p>
+                        <div className="about-section">
+                            <h2 className="about-title">About</h2>
+                            <p className="about-text">
+                                Built by a finance student at the University of Melbourne. Open-source project tracking unusual options flow and social sentiment.
+                                Data sourced from yfinance, Finnhub, ApeWisdom, and Polymarket.
+                            </p>
+                            <a href="https://github.com/Pascal-123456789/gene-finance" target="_blank" rel="noopener noreferrer" className="github-link">
+                                <FaGithub /> View on GitHub
+                            </a>
+                        </div>
                     </div>
                 );
             case 'dashboard':
@@ -297,6 +306,10 @@ export default function App() {
 
             <div className="disclaimer-footer">
                 Not financial advice. Use as one data point among many. Always do your own research.
+                {' | '}
+                <a href="https://github.com/Pascal-123456789/gene-finance" target="_blank" rel="noopener noreferrer" className="footer-github-link">
+                    <FaGithub /> GitHub
+                </a>
             </div>
         </div>
     );

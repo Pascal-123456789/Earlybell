@@ -1,5 +1,5 @@
 :root {
-    --foega-primary-color: #00ff84; /* Bright Green */
+    --foega-primary-color: #22c55e;
     --foega-secondary-color: #ff9900; /* Amber/Gold/Hype */
     --bg-dark: #121212;
     --bg-card: #1e1e1e;
@@ -198,7 +198,7 @@ body {
     z-index: 1100;
     background: #1a1a1a;
     border: 1px solid #333;
-    color: #00ff88;
+    color: #22c55e;
     padding: 10px;
     border-radius: 5px;
     cursor: pointer;
@@ -335,7 +335,7 @@ body {
 }
 
     .landing-button:hover {
-        background-color: #00cc6a;
+        background-color: #16a34a;
     }
 
     .landing-button svg {
@@ -346,6 +346,51 @@ body {
     margin-top: 30px;
     font-size: 0.9rem;
     color: var(--foega-secondary-color);
+}
+
+/* --------------------------------- */
+/* Landing Page: About Section */
+/* --------------------------------- */
+.about-section {
+    margin-top: 40px;
+    padding: 24px 32px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    max-width: 600px;
+    text-align: center;
+}
+
+.about-title {
+    color: var(--foega-primary-color);
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.about-text {
+    color: #bbb;
+    font-size: 0.95em;
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+}
+
+.github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #ccc;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.github-link:hover {
+    color: var(--foega-primary-color);
+    border-color: var(--foega-primary-color);
 }
 
 /* --------------------------------- */
@@ -706,7 +751,7 @@ body {
     }
 
 .mode-toggle {
-    background: #00ff88;
+    background: #22c55e;
     color: #000;
     border: none;
     padding: 8px 15px;
@@ -719,28 +764,28 @@ body {
 
     .mode-toggle:hover {
         transform: scale(1.05);
-        background: #00cc6e;
+        background: #16a34a;
     }
 
 .portfolio-suggestion {
     margin-top: 20px;
     padding: 15px;
     background: rgba(0, 255, 136, 0.1);
-    border-left: 4px solid #00ff88;
+    border-left: 4px solid #22c55e;
     font-size: 0.95rem;
     color: #ccc;
     width: 100%;
 }
 
     .portfolio-suggestion strong {
-        color: #00ff88;
+        color: #22c55e;
     }
 
 .view-sector-link {
     display: block;
     margin-top: 10px;
     font-size: 0.8rem;
-    color: #00ff88;
+    color: #22c55e;
     text-decoration: underline;
     opacity: 0.8;
 }
@@ -750,7 +795,7 @@ body {
 }
 
 .highlight-sector {
-    border: 2px solid #00ff88;
+    border: 2px solid #22c55e;
     padding: 20px;
     border-radius: 12px;
     background: rgba(0, 255, 136, 0.05);
@@ -760,15 +805,15 @@ body {
 
 @keyframes pulse-highlight {
     0% {
-        border-color: #00ff88;
+        border-color: #22c55e;
     }
 
     50% {
-        border-color: #008844;
+        border-color: #16a34a;
     }
 
     100% {
-        border-color: #00ff88;
+        border-color: #22c55e;
     }
 }
 
@@ -788,7 +833,7 @@ body {
 }
 
     .sector-block:hover {
-        border-color: #00ff88;
+        border-color: #22c55e;
     }
 
 .sector-info {
@@ -835,7 +880,7 @@ body {
 }
 
 .mini-change.up {
-    color: #00ff88;
+    color: #22c55e;
 }
 
 .mini-change.down {
@@ -1067,6 +1112,19 @@ body {
     background: rgba(10, 10, 10, 0.85);
     backdrop-filter: blur(4px);
     pointer-events: none;
+}
+
+.footer-github-link {
+    color: #888;
+    text-decoration: none;
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.footer-github-link:hover {
+    color: var(--foega-primary-color);
 }
 
 /* --------------------------------- */

@@ -99,7 +99,7 @@
 }
 
 .sort-controls select:hover {
-  border-color: #00ff88;
+  border-color: #22c55e;
 }
 
 /* Filter toggle button */
@@ -116,14 +116,14 @@
 }
 
 .filter-toggle-btn:hover {
-  border-color: #00ff88;
+  border-color: #22c55e;
   color: #fff;
 }
 
 .filter-toggle-btn.active {
   background: rgba(0, 255, 136, 0.1);
-  border-color: #00ff88;
-  color: #00ff88;
+  border-color: #22c55e;
+  color: #22c55e;
 }
 
 /* Alert Grid */
@@ -213,7 +213,7 @@
 .alert-score {
   font-size: 2em;
   font-weight: bold;
-  color: #00ff88;
+  color: #22c55e;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -254,7 +254,7 @@
 }
 
 .price-up-strong {
-  color: #00ff88;
+  color: #22c55e;
   background: rgba(0, 255, 136, 0.1);
 }
 
@@ -341,7 +341,7 @@
 
 .signal-fill {
   height: 100%;
-  background: linear-gradient(90deg, #00ff88 0%, #00cc6a 100%);
+  background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
   transition: width 0.3s ease;
 }
 
@@ -443,7 +443,7 @@
 }
 
 .modal-content h3 {
-  color: #00ff88;
+  color: #22c55e;
   margin-top: 20px;
   margin-bottom: 10px;
 }
@@ -453,7 +453,7 @@
   padding: 15px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
-  border-left: 3px solid #00ff88;
+  border-left: 3px solid #22c55e;
 }
 
 .modal-section p {
@@ -573,14 +573,14 @@
 }
 
 .watch-btn:hover {
-  border-color: #00ff88;
-  color: #00ff88;
+  border-color: #22c55e;
+  color: #22c55e;
 }
 
 .watch-btn.watched {
-  border-color: #00ff88;
+  border-color: #22c55e;
   background: rgba(0, 255, 136, 0.1);
-  color: #00ff88;
+  color: #22c55e;
 }
 
 /* Footer */
@@ -635,15 +635,15 @@
 
 .subscribe-input:focus {
   outline: none;
-  border-color: #00ff88;
+  border-color: #22c55e;
 }
 
 .subscribe-btn {
   padding: 10px 20px;
   border-radius: 6px;
-  border: 1px solid #00ff88;
+  border: 1px solid #22c55e;
   background: rgba(0, 255, 136, 0.1);
-  color: #00ff88;
+  color: #22c55e;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -664,7 +664,7 @@
 }
 
 .subscribe-msg.success {
-  color: #00ff88;
+  color: #22c55e;
 }
 
 .subscribe-msg.error {
