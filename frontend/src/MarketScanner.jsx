@@ -418,7 +418,7 @@ const MarketScanner = ({ polymarketEvents = [] }) => {
                     <XAxis dataKey="date" tick={{ fill: '#aaa', fontSize: 11 }} />
                     <YAxis domain={[0, 10]} tick={{ fill: '#aaa', fontSize: 11 }} width={30} />
                     <Tooltip
-                      contentStyle={{ background: '#1a1a1a', border: '1px solid #444', borderRadius: 6 }}
+                      contentStyle={{ background: '#1e293b', border: '1px solid #444', borderRadius: 6 }}
                       labelStyle={{ color: '#aaa' }}
                       itemStyle={{ color: '#22c55e' }}
                     />
