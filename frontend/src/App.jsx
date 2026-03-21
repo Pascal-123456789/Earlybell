@@ -6,6 +6,7 @@ import PredictedMovers from './PredictedMovers';
 import WatchlistView from './WatchlistView';
 import HeatmapView from './HeatmapView';
 import PremiumAccess from './PremiumAccess';
+import { Analytics } from '@vercel/analytics/react';
 
 // --- COMPONENT: HelpModal ---
 const HelpModal = ({ onClose }) => (
@@ -311,6 +312,8 @@ export default function App() {
                     <FaGithub /> GitHub
                 </a>
             </div>
+
+            <Analytics />
         </div>
     );
 }
