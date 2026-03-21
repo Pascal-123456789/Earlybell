@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope, FaGithub } from 'react-icons/fa';
+import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope } from 'react-icons/fa';
 import MarketScanner from './MarketScanner';
 import PredictedMovers from './PredictedMovers';
 import WatchlistView from './WatchlistView';
@@ -186,7 +186,7 @@ export default function App() {
                     <div className="content-area landing-page">
                         <h1 className="landing-title">EarlyBell Market Scanner</h1>
                         <p className="landing-tagline">Track unusual options flow, volume spikes, and social sentiment across 49 US stocks</p>
-                        <p>An open-source tool that aggregates publicly available market signals into a single dashboard, updated hourly.</p>
+                        <p>Aggregates publicly available market signals into a single dashboard, updated hourly.</p>
                         <button className="main-cta landing-button" onClick={() => setCurrentView('dashboard')}>
                             Open Scanner <FaFire />
                         </button>
@@ -212,12 +212,9 @@ export default function App() {
                         <div className="about-section">
                             <h2 className="about-title">About</h2>
                             <p className="about-text">
-                                Built by a finance student at the University of Melbourne. Open-source project tracking unusual options flow and social sentiment.
+                                Built by a finance student at the University of Melbourne.
                                 Data sourced from yfinance, Finnhub, ApeWisdom, and Polymarket.
                             </p>
-                            <a href="https://github.com/Pascal-123456789/gene-finance" target="_blank" rel="noopener noreferrer" className="github-link">
-                                <FaGithub /> View on GitHub
-                            </a>
                         </div>
                     </div>
                 );
@@ -307,10 +304,6 @@ export default function App() {
 
             <div className="disclaimer-footer">
                 Not financial advice. Use as one data point among many. Always do your own research.
-                {' | '}
-                <a href="https://github.com/Pascal-123456789/gene-finance" target="_blank" rel="noopener noreferrer" className="footer-github-link">
-                    <FaGithub /> GitHub
-                </a>
             </div>
 
             <Analytics />
