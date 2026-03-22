@@ -20,6 +20,7 @@ const MarketScanner = ({ polymarketEvents = [] }) => {
       return JSON.parse(localStorage.getItem('foega_watchlist')) || [];
     } catch { return []; }
   });
+  const [expandedTicker, setExpandedTicker] = useState(null);
 
   const fetchHistory = async (ticker) => {
     setHistoryLoading(true);
@@ -121,6 +122,12 @@ const MarketScanner = ({ polymarketEvents = [] }) => {
     const match = polymarketEvents.find(e => e.affected_tickers && e.affected_tickers.includes(ticker));
     if (!match) return null;
     return match;
+  };
+
+  const formatDetail = (value, decimals = 2) => {
+    if (value === undefined || value === null || value === 0) return '—';
+    if (Number.isInteger(value) || decimals === 0) return value.toLocaleString();
+    return Number(value).toFixed(decimals);
   };
 
   const getSentimentEmoji = (score) => {
@@ -314,6 +321,58 @@ const MarketScanner = ({ polymarketEvents = [] }) => {
                     if (firing === 3) return 'All signals firing';
                     return `${firing} signal${firing > 1 ? 's' : ''} firing`;
                   })()}
+                </div>
+
+                <button
+                  className="details-toggle-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedTicker(expandedTicker === alert.ticker ? null : alert.ticker);
+                  }}
+                >
+                  {expandedTicker === alert.ticker ? 'Hide Details' : 'View Details'}
+                </button>
+
+                <div className={`signal-details ${expandedTicker === alert.ticker ? 'expanded' : ''}`}>
+                  <div className="detail-section">
+                    <h4>Options Flow</h4>
+                    <div className="detail-grid">
+                      <span className="detail-key">Call/Put Ratio</span>
+                      <span className="detail-val">{formatDetail(alert.options_call_put_ratio)}</span>
+                      <span className="detail-key">Vol/OI Ratio</span>
+                      <span className="detail-val">{formatDetail(alert.options_volume_oi_ratio)}</span>
+                      <span className="detail-key">Total Call Vol</span>
+                      <span className="detail-val">{formatDetail(alert.options_total_call_volume, 0)}</span>
+                      <span className="detail-key">Total Put Vol</span>
+                      <span className="detail-val">{formatDetail(alert.options_total_put_volume, 0)}</span>
+                    </div>
+                  </div>
+                  <div className="detail-section">
+                    <h4>Volume</h4>
+                    <div className="detail-grid">
+                      <span className="detail-key">Today</span>
+                      <span className="detail-val">{formatDetail(alert.volume_today, 0)}</span>
+                      <span className="detail-key">30d Avg</span>
+                      <span className="detail-val">{formatDetail(alert.volume_avg_30d, 0)}</span>
+                      <span className="detail-key">Vol Ratio</span>
+                      <span className="detail-val">{formatDetail(alert.volume_ratio_today)}x</span>
+                      <span className="detail-key">5d Ratio</span>
+                      <span className="detail-val">{formatDetail(alert.volume_ratio_5d)}x</span>
+                      <span className="detail-key">Volatility Ratio</span>
+                      <span className="detail-val">{formatDetail(alert.volume_volatility_ratio)}</span>
+                    </div>
+                  </div>
+                  <div className="detail-section">
+                    <h4>Social</h4>
+                    <div className="detail-grid">
+                      <span className="detail-key">Mentions</span>
+                      <span className="detail-val">{formatDetail(alert.social_mentions, 0)}</span>
+                      <span className="detail-key">Rank</span>
+                      <span className="detail-val">{formatDetail(alert.social_rank, 0)}</span>
+                      <span className="detail-key">Upvotes</span>
+                      <span className="detail-val">{formatDetail(alert.social_upvotes, 0)}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <button

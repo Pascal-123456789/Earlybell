@@ -608,6 +608,72 @@
   text-decoration: underline;
 }
 
+/* Details Toggle Button */
+.details-toggle-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: none;
+  color: #666;
+  font-size: 0.8em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.details-toggle-btn:hover {
+  color: #aaa;
+  border-color: #444;
+}
+
+/* Signal Details - Expandable */
+.signal-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
+.signal-details.expanded {
+  max-height: 500px;
+}
+
+.detail-section {
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detail-section:first-child {
+  border-top: none;
+}
+
+.detail-section h4 {
+  color: #888;
+  font-size: 0.75em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 8px 0;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+
+.detail-key {
+  font-size: 0.78em;
+  color: #666;
+}
+
+.detail-val {
+  font-size: 0.78em;
+  color: #ccc;
+  text-align: right;
+  font-weight: 600;
+}
+
 /* Watch Button */
 .watch-btn {
   display: block;

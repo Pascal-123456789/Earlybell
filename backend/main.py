@@ -734,6 +734,19 @@ async def scan_for_alerts():
                     "news_count": item.get("news_count", 0),
                     "current_price": price,
                     "price_change_pct": item.get("price_change_pct", 0),
+                    # Signal detail breakdowns
+                    "options_call_put_ratio": item["options_signal"].get("call_put_ratio", 0),
+                    "options_volume_oi_ratio": item["options_signal"].get("volume_oi_ratio", 0),
+                    "options_total_call_volume": item["options_signal"].get("total_call_volume", 0),
+                    "options_total_put_volume": item["options_signal"].get("total_put_volume", 0),
+                    "volume_ratio_today": item["volume_signal"].get("volume_ratio_today", 0),
+                    "volume_ratio_5d": item["volume_signal"].get("volume_ratio_5d", 0),
+                    "volume_volatility_ratio": item["volume_signal"].get("volatility_ratio", 0),
+                    "volume_avg_30d": item["volume_signal"].get("avg_volume_30d", 0),
+                    "volume_today": item["volume_signal"].get("today_volume", 0),
+                    "social_mentions": item["social_signal"].get("mentions", 0),
+                    "social_rank": item["social_signal"].get("rank", 0),
+                    "social_upvotes": item["social_signal"].get("upvotes", 0),
                 })
 
             if skipped:
