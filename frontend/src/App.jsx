@@ -141,7 +141,8 @@ const TickerDetailModal = ({ modalData, modalLoading, modalError, setModalData, 
 // --- MAIN APP COMPONENT ---
 export default function App() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
-    const [currentView, setCurrentView] = useState('dashboard');
+    const isFirstVisit = !localStorage.getItem('earlybell_visited');
+    const [currentView, setCurrentView] = useState(isFirstVisit ? 'welcome' : 'dashboard');
     const [modalData, setModalData] = useState(null);
     const [modalLoading, setModalLoading] = useState(false);
     const [modalError, setModalError] = useState(null);
@@ -178,8 +179,58 @@ export default function App() {
         finally { setModalLoading(false); }
     };
 
+    const handleEnterScanner = () => {
+        localStorage.setItem('earlybell_visited', 'true');
+        setCurrentView('dashboard');
+    };
+
+    const aboutContent = (
+        <div className="content-area landing-page">
+            <h1 className="landing-title">EarlyBell Market Scanner</h1>
+            <p className="landing-tagline">Track unusual options flow, volume spikes, and social sentiment across 49 US stocks</p>
+            <p>Aggregates publicly available market signals into a single dashboard, updated hourly.</p>
+
+            <div className="how-it-works">
+                <h2 className="how-it-works-title">How It Works</h2>
+                <div className="how-it-works-steps">
+                    <div className="step-card">
+                        <span className="step-number">1</span>
+                        <p>Every hour, we pull options flow, trading volume, and Reddit mention data for 49 tickers</p>
+                    </div>
+                    <div className="step-card">
+                        <span className="step-number">2</span>
+                        <p>Each signal is scored 0-10 and combined into a weighted alert score (40% options, 35% volume, 25% social)</p>
+                    </div>
+                    <div className="step-card">
+                        <span className="step-number">3</span>
+                        <p>High-scoring tickers may warrant further research — this is a screening tool, not financial advice</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="about-section">
+                <h2 className="about-title">About</h2>
+                <p className="about-text">
+                    Built by a finance student at the University of Melbourne.
+                    Data sourced from yfinance, Finnhub, ApeWisdom, and Polymarket.
+                </p>
+            </div>
+        </div>
+    );
+
     const renderContent = () => {
         switch (currentView) {
+            case 'welcome':
+                return (
+                    <>
+                        {aboutContent}
+                        <div style={{ textAlign: 'center', marginTop: '10px', marginBottom: '40px' }}>
+                            <button className="landing-button" onClick={handleEnterScanner}>
+                                Take Me to the Scanner 🔔
+                            </button>
+                        </div>
+                    </>
+                );
             case 'dashboard':
                 return <MarketScanner polymarketEvents={polymarketEvents} />;
             case 'movers':
@@ -191,39 +242,7 @@ export default function App() {
             case 'premium':
                 return <PremiumAccess />;
             case 'about':
-                return (
-                    <div className="content-area landing-page">
-                        <h1 className="landing-title">EarlyBell Market Scanner</h1>
-                        <p className="landing-tagline">Track unusual options flow, volume spikes, and social sentiment across 49 US stocks</p>
-                        <p>Aggregates publicly available market signals into a single dashboard, updated hourly.</p>
-
-                        <div className="how-it-works">
-                            <h2 className="how-it-works-title">How It Works</h2>
-                            <div className="how-it-works-steps">
-                                <div className="step-card">
-                                    <span className="step-number">1</span>
-                                    <p>Every hour, we pull options flow, trading volume, and Reddit mention data for 49 tickers</p>
-                                </div>
-                                <div className="step-card">
-                                    <span className="step-number">2</span>
-                                    <p>Each signal is scored 0-10 and combined into a weighted alert score (40% options, 35% volume, 25% social)</p>
-                                </div>
-                                <div className="step-card">
-                                    <span className="step-number">3</span>
-                                    <p>High-scoring tickers may warrant further research — this is a screening tool, not financial advice</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="about-section">
-                            <h2 className="about-title">About</h2>
-                            <p className="about-text">
-                                Built by a finance student at the University of Melbourne.
-                                Data sourced from yfinance, Finnhub, ApeWisdom, and Polymarket.
-                            </p>
-                        </div>
-                    </div>
-                );
+                return aboutContent;
             default:
                 return null;
         }
@@ -231,6 +250,7 @@ export default function App() {
 
     return (
         <div className="App">
+            {currentView !== 'welcome' && (
                 <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
                     <div className="logo-container">
                         <span className="sidebar-logo">EarlyBell</span>
@@ -257,7 +277,7 @@ export default function App() {
                         </div>
                         <div className={`nav-item ${currentView === 'about' ? 'active' : ''}`}
                              onClick={() => setCurrentView('about')}>
-                            <FaInfoCircle /> <span>About</span>
+                            <FaInfoCircle /> <span>How It Works</span>
                         </div>
                         <div className={`nav-item ${currentView === 'premium' ? 'active' : ''}`}
                              onClick={() => setCurrentView('premium')}>
@@ -271,13 +291,14 @@ export default function App() {
                     </div>
                     <div className="hype-indicator"><FaFire /> <span>Scanner Online</span></div>
                 </div>
+            )}
 
-            {isMobile && isSidebarOpen && (
+            {currentView !== 'welcome' && isMobile && isSidebarOpen && (
                 <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
             )}
 
-            <div className={`main-content ${isSidebarOpen ? 'shifted' : 'full'}`}>
-                {!isSidebarOpen && (
+            <div className={`main-content ${currentView === 'welcome' ? 'full' : isSidebarOpen ? 'shifted' : 'full'}`}>
+                {currentView !== 'welcome' && !isSidebarOpen && (
                     <button className="toggle-btn-top" onClick={() => setIsSidebarOpen(true)}>
                         <FaBars />
                     </button>
