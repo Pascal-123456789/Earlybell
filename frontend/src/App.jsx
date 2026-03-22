@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope } from 'react-icons/fa';
+import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope, FaInfoCircle } from 'react-icons/fa';
 import MarketScanner from './MarketScanner';
 import PredictedMovers from './PredictedMovers';
 import WatchlistView from './WatchlistView';
@@ -141,7 +141,7 @@ const TickerDetailModal = ({ modalData, modalLoading, modalError, setModalData, 
 // --- MAIN APP COMPONENT ---
 export default function App() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
-    const [currentView, setCurrentView] = useState('landing');
+    const [currentView, setCurrentView] = useState('dashboard');
     const [modalData, setModalData] = useState(null);
     const [modalLoading, setModalLoading] = useState(false);
     const [modalError, setModalError] = useState(null);
@@ -180,15 +180,22 @@ export default function App() {
 
     const renderContent = () => {
         switch (currentView) {
-            case 'landing':
+            case 'dashboard':
+                return <MarketScanner polymarketEvents={polymarketEvents} />;
+            case 'movers':
+                return <PredictedMovers />;
+            case 'watchlist':
+                return <WatchlistView />;
+            case 'heatmap':
+                return <HeatmapView onTickerClick={fetchTickerDetails} />;
+            case 'premium':
+                return <PremiumAccess />;
+            case 'about':
                 return (
                     <div className="content-area landing-page">
                         <h1 className="landing-title">EarlyBell Market Scanner</h1>
                         <p className="landing-tagline">Track unusual options flow, volume spikes, and social sentiment across 49 US stocks</p>
                         <p>Aggregates publicly available market signals into a single dashboard, updated hourly.</p>
-                        <button className="main-cta landing-button" onClick={() => setCurrentView('dashboard')}>
-                            Open Scanner <FaFire />
-                        </button>
 
                         <div className="how-it-works">
                             <h2 className="how-it-works-title">How It Works</h2>
@@ -217,24 +224,13 @@ export default function App() {
                         </div>
                     </div>
                 );
-            case 'dashboard':
-                return <MarketScanner polymarketEvents={polymarketEvents} />;
-            case 'movers':
-                return <PredictedMovers />;
-            case 'watchlist':
-                return <WatchlistView />;
-            case 'heatmap':
-                return <HeatmapView onTickerClick={fetchTickerDetails} />;
-            case 'premium':
-                return <PremiumAccess />;
             default:
                 return null;
         }
     };
 
     return (
-        <div className={`App ${currentView === 'landing' ? 'landing' : ''}`}>
-            {currentView !== 'landing' && (
+        <div className="App">
                 <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
                     <div className="logo-container">
                         <span className="sidebar-logo">EarlyBell</span>
@@ -259,6 +255,10 @@ export default function App() {
                              onClick={() => setCurrentView('watchlist')}>
                             <FaStar /> <span>Watchlist</span>
                         </div>
+                        <div className={`nav-item ${currentView === 'about' ? 'active' : ''}`}
+                             onClick={() => setCurrentView('about')}>
+                            <FaInfoCircle /> <span>About</span>
+                        </div>
                         <div className={`nav-item ${currentView === 'premium' ? 'active' : ''}`}
                              onClick={() => setCurrentView('premium')}>
                             <FaLock /> <span>Premium Access</span>
@@ -271,14 +271,13 @@ export default function App() {
                     </div>
                     <div className="hype-indicator"><FaFire /> <span>Scanner Online</span></div>
                 </div>
-            )}
 
-            {isMobile && isSidebarOpen && currentView !== 'landing' && (
+            {isMobile && isSidebarOpen && (
                 <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
             )}
 
-            <div className={`main-content ${currentView === 'landing' ? 'landing' : isSidebarOpen ? 'shifted' : 'full'}`}>
-                {currentView !== 'landing' && !isSidebarOpen && (
+            <div className={`main-content ${isSidebarOpen ? 'shifted' : 'full'}`}>
+                {!isSidebarOpen && (
                     <button className="toggle-btn-top" onClick={() => setIsSidebarOpen(true)}>
                         <FaBars />
                     </button>

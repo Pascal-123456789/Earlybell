@@ -177,13 +177,6 @@ body {
         width: 100%;
     }
 
-    .main-content.landing {
-        margin-left: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
 /* Force inner content-area to use maximum width */
 .content-area {
     width: 100%;
