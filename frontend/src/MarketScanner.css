@@ -365,6 +365,27 @@
   font-weight: 700;
 }
 
+.earnings-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  margin-top: 8px;
+}
+
+.earnings-badge .earnings-icon {
+  font-size: 0.8rem;
+}
+
+.earnings-badge .earnings-text {
+  color: #ffc107;
+  font-weight: 600;
+}
+
 /* Unified Signals */
 .unified-signals {
   margin-top: 15px;

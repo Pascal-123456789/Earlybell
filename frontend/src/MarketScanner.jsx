@@ -285,6 +285,23 @@ const MarketScanner = ({ polymarketEvents = [] }) => {
                   );
                 })()}
 
+                {alert.earnings_date && (() => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const earningsDate = new Date(alert.earnings_date + 'T00:00:00');
+                  const diffDays = Math.round((earningsDate - today) / (1000 * 60 * 60 * 24));
+                  if (diffDays < 0 || diffDays > 14) return null;
+                  const timeLabel = alert.earnings_time === 'bmo' ? ' BMO' : alert.earnings_time === 'amc' ? ' AMC' : '';
+                  return (
+                    <div className="earnings-badge">
+                      <span className="earnings-icon">📊</span>
+                      <span className="earnings-text">
+                        {diffDays === 0 ? 'Earnings today' : `Earnings in ${diffDays}d`}{timeLabel}
+                      </span>
+                    </div>
+                  );
+                })()}
+
                 <div className="unified-signals">
                   <div className="signal-row" title="Unusual call option buying vs puts — high = institutions betting on a move">
                     <span className="signal-label">Options</span>

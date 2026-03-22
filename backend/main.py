@@ -255,6 +255,51 @@ async def async_news_sentiment_and_volume(ticker: str, debug: bool = False) -> D
         return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
 
 # ---------------------------
+# EARNINGS CALENDAR (FINNHUB)
+# ---------------------------
+
+async def fetch_earnings_calendar() -> Dict[str, Dict[str, str]]:
+    """
+    Fetch upcoming earnings for the next 14 days via Finnhub bulk endpoint.
+    Returns dict mapping ticker -> {"date": "YYYY-MM-DD", "time": "bmo"|"amc"|None}
+    Single API call — not per-ticker.
+    """
+    if not FINNHUB_API_KEY:
+        print("EARNINGS: Skipped — no FINNHUB_API_KEY")
+        return {}
+
+    today_str = date.today().isoformat()
+    end_str = (date.today() + timedelta(days=14)).isoformat()
+    url = f"https://finnhub.io/api/v1/calendar/earnings?from={today_str}&to={end_str}&token={FINNHUB_API_KEY}"
+
+    try:
+        await asyncio.sleep(FINNHUB_CALL_DELAY)
+        response = await CLIENT.get(url, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+        earnings_list = data.get("earningsCalendar", [])
+
+        result = {}
+        for entry in earnings_list:
+            symbol = entry.get("symbol", "")
+            if not symbol:
+                continue
+            # Keep first occurrence per ticker (earliest date)
+            if symbol not in result:
+                hour = entry.get("hour", "")
+                result[symbol] = {
+                    "date": entry.get("date", ""),
+                    "time": hour if hour in ("bmo", "amc") else None,
+                }
+
+        print(f"EARNINGS CALENDAR: {len(earnings_list)} entries, {len(result)} unique tickers in next 14 days")
+        return result
+
+    except Exception as e:
+        print(f"EARNINGS CALENDAR ERROR: {type(e).__name__}: {e}")
+        return {}
+
+# ---------------------------
 # HELPER FUNCTIONS (DATA PROCESSING)
 # ---------------------------
 
@@ -713,6 +758,17 @@ async def scan_for_alerts():
         for t in top:
             print(f"  {t['ticker']}: {t['news_count']} articles, sentiment={t['sentiment_score']:.3f}")
 
+    # Fetch upcoming earnings calendar (single bulk API call)
+    earnings_map = await fetch_earnings_calendar()
+    for item in results:
+        ticker = item["ticker"]
+        if ticker in earnings_map:
+            item["earnings_date"] = earnings_map[ticker]["date"]
+            item["earnings_time"] = earnings_map[ticker]["time"]
+        else:
+            item["earnings_date"] = None
+            item["earnings_time"] = None
+
     # Save to Supabase — skip tickers with $0 price (bad data)
     if supabase:
         try:
@@ -748,6 +804,8 @@ async def scan_for_alerts():
                     "social_mentions": item["social_signal"].get("mentions") or 0,
                     "social_rank": item["social_signal"].get("rank") or 0,
                     "social_upvotes": item["social_signal"].get("upvotes") or 0,
+                    "earnings_date": item.get("earnings_date"),
+                    "earnings_time": item.get("earnings_time"),
                 })
 
             if skipped:
