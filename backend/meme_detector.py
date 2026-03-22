@@ -194,26 +194,35 @@ class MemeStockDetector:
             # Scoring logic
             score = 0
             unusual_volume = False
-            
+
             # Today's volume spike
+            # Old thresholds: >3.0→5, >2.0→3, >1.5→1 (gap: 1.0x-1.5x scored 0)
             if volume_ratio_today > 3.0:
+                score += 6
+                unusual_volume = True
+            elif volume_ratio_today > 2.5:
                 score += 5
                 unusual_volume = True
-            elif volume_ratio_today > 2.0:
+            elif volume_ratio_today > 1.7:
                 score += 3
-            elif volume_ratio_today > 1.5:
+            elif volume_ratio_today > 1.3:
+                score += 2
+            elif volume_ratio_today > 1.0:
                 score += 1
-            
-            # Sustained elevated volume
-            if volume_ratio_5d > 2.0:
+
+            # Sustained elevated volume (5-day)
+            # Old thresholds: >2.0→3, >1.5→2
+            if volume_ratio_5d > 2.5:
                 score += 3
                 unusual_volume = True
-            elif volume_ratio_5d > 1.5:
+            elif volume_ratio_5d > 1.7:
                 score += 2
-            
+            elif volume_ratio_5d > 1.3:
+                score += 1
+
             # Elevated volatility
             if volatility_ratio > 2.0:
-                score += 2
+                score += 1
             
             # Cap at 10
             score = min(score, 10)

@@ -672,7 +672,8 @@ async def scan_for_alerts():
 
         # Add sentiment (with rate-limit tracking)
         try:
-            sentiment_data = await async_news_sentiment_and_volume(ticker)
+            debug_this = (ticker == "AVGO")  # Debug one ticker to diagnose Finnhub issues
+            sentiment_data = await async_news_sentiment_and_volume(ticker, debug=debug_this)
             item["sentiment_score"] = sentiment_data.get("social_raw", 0.0)
             item["news_count"] = sentiment_data.get("news_raw", 0)
             if item["news_count"] > 0:
@@ -729,7 +730,7 @@ async def scan_for_alerts():
                     "signals_triggered": item["signals_triggered"],
                     "options_score": item["options_signal"]["score"],
                     "volume_score": item["volume_signal"]["score"],
-                    "social_score": item["social_signal"]["score"],
+                    "social_score": item["social_signal"].get("score") or 0,
                     "sentiment_score": item.get("sentiment_score", 0),
                     "news_count": item.get("news_count", 0),
                     "current_price": price,
@@ -744,9 +745,9 @@ async def scan_for_alerts():
                     "volume_volatility_ratio": item["volume_signal"].get("volatility_ratio", 0),
                     "volume_avg_30d": item["volume_signal"].get("avg_volume_30d", 0),
                     "volume_today": item["volume_signal"].get("today_volume", 0),
-                    "social_mentions": item["social_signal"].get("mentions", 0),
-                    "social_rank": item["social_signal"].get("rank", 0),
-                    "social_upvotes": item["social_signal"].get("upvotes", 0),
+                    "social_mentions": item["social_signal"].get("mentions") or 0,
+                    "social_rank": item["social_signal"].get("rank") or 0,
+                    "social_upvotes": item["social_signal"].get("upvotes") or 0,
                 })
 
             if skipped:
