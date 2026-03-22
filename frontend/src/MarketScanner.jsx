@@ -6,6 +6,39 @@ import './MarketScanner.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
+const getDirectionSignal = (alert) => {
+  let score = 0;
+  const cpRatio = alert.options_call_put_ratio || 0;
+  const callVol = alert.options_total_call_volume || 0;
+  const putVol = alert.options_total_put_volume || 0;
+  const pricePct = alert.price_change_pct || 0;
+  const sentiment = alert.sentiment_score || 0;
+  const social = alert.social_score || 0;
+
+  if (cpRatio > 2.0) score += 2;
+  else if (cpRatio > 0 && cpRatio < 0.7) score -= 2;
+
+  if (callVol > putVol * 1.5) score += 1;
+  else if (putVol > callVol * 1.5) score -= 1;
+
+  if (pricePct > 1.5) score += 1;
+  else if (pricePct < -1.5) score -= 1;
+
+  if (sentiment > 0.3) score += 0.5;
+  else if (sentiment < -0.3) score -= 0.5;
+
+  if (social >= 5) {
+    if (pricePct > 0) score += 0.5;
+    else if (pricePct < 0) score -= 0.5;
+  }
+
+  let direction = 'NEUTRAL';
+  if (score > 1.5) direction = 'BULLISH';
+  else if (score < -1.5) direction = 'BEARISH';
+
+  return { direction, score };
+};
+
 const MarketScanner = ({ polymarketEvents = [] }) => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -274,6 +307,21 @@ const MarketScanner = ({ polymarketEvents = [] }) => {
                 <div className="alert-level-badge">
                   {alert.alert_level}
                 </div>
+
+                {(() => {
+                  const { direction } = getDirectionSignal(alert);
+                  const cfg = {
+                    BULLISH: { arrow: '▲', cls: 'bullish' },
+                    BEARISH: { arrow: '▼', cls: 'bearish' },
+                    NEUTRAL: { arrow: '▶', cls: 'neutral' },
+                  }[direction];
+                  return (
+                    <div className={`direction-badge ${cfg.cls}`}>
+                      <span className="direction-arrow">{cfg.arrow}</span>
+                      <span className="direction-label">{direction}</span>
+                    </div>
+                  );
+                })()}
 
                 {getPolymarketOdds(alert.ticker) && (() => {
                   const odds = getPolymarketOdds(alert.ticker);
