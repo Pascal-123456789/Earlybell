@@ -153,6 +153,21 @@
   color: #fff;
 }
 
+/* Earnings Warning Badge */
+.alert-earnings-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8em;
+  font-weight: 600;
+  margin-bottom: 12px;
+  background: rgba(255, 152, 0, 0.15);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
 /* Alert Signals */
 .alert-signals {
   display: flex;

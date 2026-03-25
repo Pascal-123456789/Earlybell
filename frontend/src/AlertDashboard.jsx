@@ -128,6 +128,20 @@ const AlertDashboard = () => {
                   {alert.alert_level}
                 </div>
 
+                {alert.earnings_date && (() => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const earningsDate = new Date(alert.earnings_date + 'T00:00:00');
+                  const diffDays = Math.round((earningsDate - today) / (1000 * 60 * 60 * 24));
+                  if (diffDays < 0 || diffDays > 5) return null;
+                  const timeLabel = alert.earnings_time === 'bmo' ? ' BMO' : alert.earnings_time === 'amc' ? ' AMC' : '';
+                  return (
+                    <div className="alert-earnings-warning">
+                      <span>&#9888;</span> {diffDays === 0 ? 'Earnings today' : `Earnings in ${diffDays}d`}{timeLabel}
+                    </div>
+                  );
+                })()}
+
                 <div className="alert-signals">
                   <div className="signal-item">
                     <span className="signal-label">Options</span>
