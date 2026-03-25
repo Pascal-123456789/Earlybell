@@ -801,6 +801,8 @@ async def scan_for_alerts():
                     "volume_volatility_ratio": item["volume_signal"].get("volatility_ratio", 0),
                     "volume_avg_30d": item["volume_signal"].get("avg_volume_30d", 0),
                     "volume_today": item["volume_signal"].get("today_volume", 0),
+                    "volume_direction": item["volume_signal"].get("volume_direction", "NEUTRAL"),
+                    "volume_price_change_pct": item["volume_signal"].get("price_change_pct", 0),
                     "social_mentions": item["social_signal"].get("mentions") or 0,
                     "social_rank": item["social_signal"].get("rank") or 0,
                     "social_upvotes": item["social_signal"].get("upvotes") or 0,

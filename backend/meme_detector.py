@@ -226,7 +226,16 @@ class MemeStockDetector:
             
             # Cap at 10
             score = min(score, 10)
-            
+
+            # Price direction label: ACCUMULATION (up) or DISTRIBUTION (down)
+            today_close = hist['Close'].iloc[-1]
+            prev_close = hist['Close'].iloc[-2] if len(hist) >= 2 else today_close
+            price_change_pct = ((today_close - prev_close) / (prev_close + 0.0001)) * 100
+            if unusual_volume or volume_ratio_today > 1.3:
+                volume_direction = "ACCUMULATION" if price_change_pct >= 0 else "DISTRIBUTION"
+            else:
+                volume_direction = "NEUTRAL"
+
             return {
                 "score": score,
                 "signal": "STRONG" if score >= 7 else "MODERATE" if score >= 4 else "WEAK",
@@ -235,7 +244,9 @@ class MemeStockDetector:
                 "volatility_ratio": round(volatility_ratio, 2),
                 "unusual_volume": unusual_volume,
                 "avg_volume_30d": int(avg_volume_30d),
-                "today_volume": int(today_volume)
+                "today_volume": int(today_volume),
+                "volume_direction": volume_direction,
+                "price_change_pct": round(price_change_pct, 2)
             }
             
         except Exception as e:
