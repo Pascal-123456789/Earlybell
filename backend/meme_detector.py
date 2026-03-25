@@ -445,7 +445,7 @@ class MemeStockDetector:
                 f"&dateRange=custom&startdt={start_date}&enddt={end_date}"
                 f"&forms=4"
             )
-            headers = {"User-Agent": "EarlyBell contact@earlybell.app"}
+            headers = {"User-Agent": "EarlyBell dipbedford@gmail.com"}
 
             response = await self.client.get(url, headers=headers)
 
