@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope, FaInfoCircle } from 'react-icons/fa';
+import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope, FaInfoCircle, FaChartLine } from 'react-icons/fa';
 import MarketScanner from './MarketScanner';
 import PredictedMovers from './PredictedMovers';
 import WatchlistView from './WatchlistView';
 import HeatmapView from './HeatmapView';
+import AlertHistoryView from './AlertHistoryView';
 import PremiumAccess from './PremiumAccess';
 
 // --- COMPONENT: HelpModal ---
@@ -239,6 +240,8 @@ export default function App() {
                 return <WatchlistView />;
             case 'heatmap':
                 return <HeatmapView onTickerClick={fetchTickerDetails} />;
+            case 'history':
+                return <AlertHistoryView />;
             case 'premium':
                 return <PremiumAccess />;
             case 'about':
@@ -270,6 +273,10 @@ export default function App() {
                         <div className={`nav-item ${currentView === 'heatmap' ? 'active' : ''}`}
                              onClick={() => setCurrentView('heatmap')}>
                             <FaTh /> <span>Heatmap</span>
+                        </div>
+                        <div className={`nav-item ${currentView === 'history' ? 'active' : ''}`}
+                             onClick={() => setCurrentView('history')}>
+                            <FaChartLine /> <span>Alert History</span>
                         </div>
                         <div className={`nav-item ${currentView === 'watchlist' ? 'active' : ''}`}
                              onClick={() => setCurrentView('watchlist')}>
