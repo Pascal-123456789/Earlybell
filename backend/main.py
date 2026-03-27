@@ -6,7 +6,7 @@ import yfinance as yf
 import time
 import smtplib
 from email.mime.text import MIMEText
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import List, Dict, Union, Any, Optional
 from pydantic import BaseModel
 from meme_detector import MemeStockDetector
@@ -138,22 +138,31 @@ async def scheduled_update_loop():
     On AWS, it ensures the database stays fresh even if no one visits the site.
     """
     while True:
+        print(f"AUTO-UPDATE: Loop tick at {datetime.now()}")
+
         try:
             print("AUTO-UPDATE: Starting alert scan...")
             await scan_for_alerts()
-            print("AUTO-UPDATE: Alert scan complete. Starting hype fetch...")
-            await trending_hype()
-            print("AUTO-UPDATE: Hype data updated. Now updating predicted movers...")
-            try:
-                movers_result = await predicted_movers()
-                movers_count = len(movers_result) if isinstance(movers_result, list) else 0
-                print(f"AUTO-UPDATE: Predicted movers complete — {movers_count} tickers processed.")
-            except Exception as me:
-                print(f"AUTO-UPDATE: predicted_movers() FAILED: {me}")
-            print("AUTO-UPDATE: All tasks complete. Sleeping for 1 hour.")
+            print("AUTO-UPDATE: Alert scan complete.")
         except Exception as e:
-            print(f"AUTO-UPDATE ERROR: {e}")
+            print(f"AUTO-UPDATE: scan_for_alerts() FAILED: {e}")
 
+        try:
+            print("AUTO-UPDATE: Starting hype fetch...")
+            await trending_hype()
+            print("AUTO-UPDATE: Hype data updated.")
+        except Exception as e:
+            print(f"AUTO-UPDATE: trending_hype() FAILED: {e}")
+
+        try:
+            print("AUTO-UPDATE: Updating predicted movers...")
+            movers_result = await predicted_movers()
+            movers_count = len(movers_result) if isinstance(movers_result, list) else 0
+            print(f"AUTO-UPDATE: Predicted movers complete — {movers_count} tickers processed.")
+        except Exception as e:
+            print(f"AUTO-UPDATE: predicted_movers() FAILED: {e}")
+
+        print("AUTO-UPDATE: All tasks complete. Sleeping for 1 hour.")
         # Wait for 1 hour (3600 seconds)
         await asyncio.sleep(3600)
         
