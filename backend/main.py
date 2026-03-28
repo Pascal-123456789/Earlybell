@@ -93,7 +93,7 @@ STOCK_TICKERS = [
     "AMD", "INTC", "AVGO", "QCOM", "TSM", "MU",
     "V", "MA", "PYPL", "COIN", "HOOD", "SOFI",
     "GME", "AMC", "PLTR", "SNAP", "RBLX",
-    "UBER", "LYFT", "ABNB", "DASH", "SPOT", "ZM",
+    "UBER", "LYFT", "DASH", "SPOT", "ZM",
     "JPM", "BAC", "GS", "MS", "WFC",
     "JNJ", "UNH", "PFE", "ABBV", "LLY",
     "XOM", "CVX", "COP", "SLB",
@@ -699,7 +699,7 @@ async def scan_for_alerts():
         "GME", "AMC", "PLTR", "SNAP", "RBLX",
         
         # === GROWTH TECH (6) ===
-        "UBER", "LYFT", "ABNB", "DASH", "SPOT", "ZM",
+        "UBER", "LYFT", "DASH", "SPOT", "ZM",
         
         # === FINANCE (5) ===
         "JPM", "BAC", "GS", "MS", "WFC",
@@ -790,6 +790,7 @@ async def scan_for_alerts():
                     continue
                 records.append({
                     "ticker": item["ticker"],
+                    "updated_at": datetime.now().isoformat(),
                     "alert_score": item["early_warning_score"],
                     "alert_level": item["alert_level"],
                     "signals_triggered": item["signals_triggered"],
