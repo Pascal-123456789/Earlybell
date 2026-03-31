@@ -526,6 +526,7 @@ async def predicted_movers():
     tickers = list(alert_map.keys())
 
     if not tickers:
+        print("predicted_movers: meme_alerts is empty — no tickers to process. Run scan_for_alerts first.")
         return []
 
     results = []
@@ -778,16 +779,16 @@ async def scan_for_alerts():
             item["earnings_date"] = None
             item["earnings_time"] = None
 
-    # Save to Supabase — skip tickers with $0 price (bad data)
+    # Save to Supabase — write all tickers; store None for price if yfinance returned 0/None
     if supabase:
         try:
             records = []
-            skipped = []
+            no_price = []
             for item in results:
                 price = item.get("current_price", 0) or 0
-                if price <= 0:
-                    skipped.append(item["ticker"])
-                    continue
+                price_val = price if price > 0 else None
+                if price_val is None:
+                    no_price.append(item["ticker"])
                 records.append({
                     "ticker": item["ticker"],
                     "updated_at": datetime.now().isoformat(),
@@ -799,7 +800,7 @@ async def scan_for_alerts():
                     "social_score": item["social_signal"].get("score") or 0,
                     "sentiment_score": item.get("sentiment_score", 0),
                     "news_count": item.get("news_count", 0),
-                    "current_price": price,
+                    "current_price": price_val,
                     "price_change_pct": item.get("price_change_pct", 0),
                     # Signal detail breakdowns
                     "options_call_put_ratio": item["options_signal"].get("call_put_ratio", 0),
@@ -822,11 +823,11 @@ async def scan_for_alerts():
                     "earnings_time": item.get("earnings_time"),
                 })
 
-            if skipped:
-                print(f"WARNING: Skipped {len(skipped)} tickers with $0 price: {skipped}")
+            if no_price:
+                print(f"WARNING: {len(no_price)} tickers had no price from yfinance (stored as NULL): {no_price}")
 
             response = supabase.table('meme_alerts').upsert(records, on_conflict='ticker').execute()
-            print(f"Saved {len(records)} unified alerts to database (skipped {len(skipped)} with bad price)")
+            print(f"SCAN COMPLETE: {len(records)} tickers written to meme_alerts | {len(no_price)} with NULL price | {len(results) - len(records)} failed to produce a result")
 
             # Send email alerts for CRITICAL tickers
             critical_tickers = [r["ticker"] for r in records if r.get("alert_level") == "CRITICAL"]
