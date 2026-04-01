@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope, FaInfoCircle, FaChartLine } from 'react-icons/fa';
+import { FaFire, FaLock, FaBars, FaRocket, FaStar, FaTh, FaEnvelope, FaInfoCircle, FaChartLine, FaNewspaper } from 'react-icons/fa';
 import MarketScanner from './MarketScanner';
 import PredictedMovers from './PredictedMovers';
 import WatchlistView from './WatchlistView';
 import HeatmapView from './HeatmapView';
 import AlertHistoryView from './AlertHistoryView';
+import NewsIntelligence from './NewsIntelligence';
 import PremiumAccess from './PremiumAccess';
 
 // --- COMPONENT: HelpModal ---
@@ -242,6 +243,8 @@ export default function App() {
                 return <HeatmapView onTickerClick={fetchTickerDetails} />;
             case 'history':
                 return <AlertHistoryView />;
+            case 'news':
+                return <NewsIntelligence />;
             case 'premium':
                 return <PremiumAccess />;
             case 'about':
@@ -273,6 +276,10 @@ export default function App() {
                         <div className={`nav-item ${currentView === 'heatmap' ? 'active' : ''}`}
                              onClick={() => setCurrentView('heatmap')}>
                             <FaTh /> <span>Heatmap</span>
+                        </div>
+                        <div className={`nav-item ${currentView === 'news' ? 'active' : ''}`}
+                             onClick={() => setCurrentView('news')}>
+                            <FaNewspaper /> <span>News Radar</span>
                         </div>
                         <div className={`nav-item ${currentView === 'history' ? 'active' : ''}`}
                              onClick={() => setCurrentView('history')}>

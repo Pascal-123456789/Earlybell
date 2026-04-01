@@ -1,0 +1,325 @@
+.news-intelligence {
+  max-width: 1200px;
+}
+
+/* ── Header ── */
+.ni-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  gap: 20px;
+}
+
+.ni-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #f1f5f9;
+}
+
+.ni-macro-summary {
+  color: #cbd5e1;
+  line-height: 1.7;
+  margin: 0 0 16px;
+  max-width: 680px;
+  font-size: 0.95rem;
+}
+
+.ni-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ni-theme-pill {
+  background: #334155;
+  color: #94a3b8;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.ni-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.ni-sentiment-pill {
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+.ni-sentiment-bullish { background: rgba(34,197,94,0.15);  color: #22c55e; border: 1px solid rgba(34,197,94,0.4); }
+.ni-sentiment-bearish { background: rgba(239,68,68,0.15);  color: #ef4444; border: 1px solid rgba(239,68,68,0.4); }
+.ni-sentiment-mixed   { background: rgba(234,179,8,0.15);  color: #eab308; border: 1px solid rgba(234,179,8,0.4); }
+.ni-sentiment-neutral { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
+
+.ni-timestamp,
+.ni-headline-count {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+/* ── Sections ── */
+.ni-section {
+  margin-bottom: 28px;
+}
+
+.ni-section-title {
+  font-size: 0.78rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0 0 14px;
+  font-weight: 600;
+}
+
+/* ── Sector grid ── */
+.ni-sector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.ni-sector-card {
+  background: #1e293b;
+  border-radius: 10px;
+  padding: 16px;
+  border-left: 3px solid #334155;
+}
+.ni-sector-positive { border-left-color: #22c55e; }
+.ni-sector-negative { border-left-color: #ef4444; }
+.ni-sector-mixed    { border-left-color: #eab308; }
+.ni-sector-neutral  { border-left-color: #334155; }
+
+.ni-sector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ni-sector-name {
+  font-weight: 600;
+  color: #e2e8f0;
+  font-size: 0.92rem;
+}
+
+.ni-sector-arrow {
+  font-size: 1.1rem;
+}
+
+.ni-sector-reason {
+  color: #94a3b8;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+
+.ni-confidence {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.ni-confidence-high   { background: rgba(34,197,94,0.15);  color: #22c55e; }
+.ni-confidence-medium { background: rgba(234,179,8,0.15);  color: #eab308; }
+.ni-confidence-low    { background: rgba(148,163,184,0.1); color: #94a3b8; }
+
+/* ── Ticker table ── */
+.ni-ticker-table {
+  background: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ni-ticker-header {
+  display: grid;
+  grid-template-columns: 90px 140px 180px 1fr;
+  padding: 10px 16px;
+  background: #0f172a;
+  color: #64748b;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  gap: 8px;
+}
+
+.ni-ticker-row {
+  display: grid;
+  grid-template-columns: 90px 140px 180px 1fr;
+  padding: 12px 16px;
+  align-items: center;
+  border-top: 1px solid #334155;
+  gap: 8px;
+}
+.ni-ticker-row:hover {
+  background: #243044;
+}
+
+.ni-ticker-symbol {
+  font-weight: 700;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.ni-ticker-dir {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.ni-magnitude-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ni-magnitude-bar {
+  flex: 1;
+  height: 6px;
+  background: #334155;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ni-magnitude-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+.ni-fill-positive { background: #22c55e; }
+.ni-fill-negative { background: #ef4444; }
+.ni-fill-mixed    { background: #eab308; }
+.ni-fill-neutral  { background: #64748b; }
+
+.ni-magnitude-value {
+  font-size: 0.75rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.ni-ticker-reason {
+  font-size: 0.81rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* ── Direction colours ── */
+.ni-arrow-positive { color: #22c55e; }
+.ni-arrow-negative { color: #ef4444; }
+.ni-arrow-mixed    { color: #eab308; }
+.ni-arrow-neutral  { color: #64748b; }
+
+/* ── Headlines collapsible ── */
+.ni-headlines-toggle {
+  background: none;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s;
+}
+.ni-headlines-toggle:hover {
+  background: #1e293b;
+  color: #cbd5e1;
+}
+
+.ni-headlines-list {
+  margin-top: 8px;
+  background: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ni-headline-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid #334155;
+  align-items: flex-start;
+}
+.ni-headline-item:first-child {
+  border-top: none;
+}
+
+.ni-headline-ticker {
+  background: #334155;
+  color: #94a3b8;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ni-headline-text {
+  font-size: 0.83rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+/* ── Empty / error ── */
+.ni-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+.ni-empty h2 {
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+.ni-hint {
+  font-size: 0.85rem;
+  margin-top: 8px;
+  color: #475569;
+}
+
+/* ── Skeleton ── */
+.skeleton-box {
+  background: #1e293b;
+  border-radius: 10px;
+  animation: ni-pulse 1.5s ease-in-out infinite;
+}
+@keyframes ni-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .ni-header {
+    flex-direction: column;
+  }
+  .ni-header-right {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ni-ticker-header,
+  .ni-ticker-row {
+    grid-template-columns: 70px 110px 130px;
+  }
+  .ni-ticker-reason {
+    display: none;
+  }
+  .ni-sector-grid {
+    grid-template-columns: 1fr;
+  }
+}

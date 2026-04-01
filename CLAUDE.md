@@ -34,6 +34,7 @@ See `backend/.env.example` for a template with placeholder values.
 - `FINNHUB_API_KEY` — News sentiment data
 - `FRONTEND_URL` — Optional, appended to CORS origins if set (production Vercel domain `https://gene-finance.vercel.app` is hardcoded)
 - `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` — Optional, for email alerts on CRITICAL tickers
+- `OPENROUTER_API_KEY` — **Must be set in Railway environment variables** for the News Intelligence feature to work. Get a key at https://openrouter.ai. Uses model `google/gemma-3-12b-it`. If missing, `analyze_headlines_with_ai()` logs a warning and skips silently — no crash.
 
 ## Architecture
 

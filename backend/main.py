@@ -1,4 +1,5 @@
 import os
+import json
 import asyncio
 import httpx
 import numpy as np
@@ -76,6 +77,10 @@ CLIENT = httpx.AsyncClient(follow_redirects=True)
 
 # --- API KEYS ---
 FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+# --- NEWS INTELLIGENCE ---
+_article_cache: list = []  # Populated by scan_for_alerts(), consumed by collect_top_headlines()
 
 # --- SMTP CONFIG ---
 SMTP_HOST = os.getenv("SMTP_HOST")
@@ -162,6 +167,20 @@ async def scheduled_update_loop():
         except Exception as e:
             print(f"AUTO-UPDATE: predicted_movers() FAILED: {e}")
 
+        try:
+            print("AUTO-UPDATE: Running news intelligence analysis...")
+            headlines = collect_top_headlines()
+            analysis = await analyze_headlines_with_ai(headlines)
+            if supabase:
+                supabase.table('news_intelligence').insert({
+                    **analysis,
+                    "headline_count": len(headlines),
+                    "headlines": headlines,
+                }).execute()
+            print(f"AUTO-UPDATE: News intelligence saved ({len(headlines)} headlines analyzed)")
+        except Exception as e:
+            print(f"AUTO-UPDATE: news intelligence FAILED: {e}")
+
         print("AUTO-UPDATE: All tasks complete. Sleeping for 1 hour.")
         # Wait for 1 hour (3600 seconds)
         await asyncio.sleep(3600)
@@ -190,11 +209,11 @@ async def async_news_sentiment_and_volume(ticker: str, debug: bool = False) -> D
     if "-" in ticker:
         if debug:
             print(f"FINNHUB [{ticker}]: Skipping — crypto ticker not supported by company-news endpoint")
-        return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
+        return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0, "articles": []}
 
     if not FINNHUB_API_KEY:
         print(f"FINNHUB [{ticker}]: No API key set — skipping")
-        return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
+        return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0, "articles": []}
 
     await asyncio.sleep(FINNHUB_CALL_DELAY)
 
@@ -221,7 +240,7 @@ async def async_news_sentiment_and_volume(ticker: str, debug: bool = False) -> D
 
         if not isinstance(news_data, list):
             print(f"FINNHUB [{ticker}]: Unexpected response type: {type(news_data).__name__} — {str(news_data)[:200]}")
-            return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
+            return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0, "articles": []}
 
         article_count = len(news_data)
 
@@ -244,7 +263,8 @@ async def async_news_sentiment_and_volume(ticker: str, debug: bool = False) -> D
         return {
             "ticker": ticker,
             "news_raw": article_count,
-            "social_raw": sentiment_score
+            "social_raw": sentiment_score,
+            "articles": news_data,
         }
 
     except httpx.HTTPStatusError as e:
@@ -258,10 +278,10 @@ async def async_news_sentiment_and_volume(ticker: str, debug: bool = False) -> D
             print(f"FINNHUB [{ticker}]: HTTP {e.response.status_code}")
             if debug:
                 print(f"FINNHUB [{ticker}]: Response body: {e.response.text[:300]}")
-        return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
+        return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0, "articles": []}
     except Exception as e:
         print(f"FINNHUB [{ticker}]: {type(e).__name__}: {e}")
-        return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0}
+        return {"ticker": ticker, "news_raw": 0, "social_raw": 0.0, "articles": []}
 
 # ---------------------------
 # EARNINGS CALENDAR (FINNHUB)
@@ -674,6 +694,118 @@ async def get_cached_movers():
 # NEW MEME STOCK ALERT ENDPOINTS
 # ==========================================
 
+# ---------------------------
+# NEWS INTELLIGENCE HELPERS
+# ---------------------------
+
+def collect_top_headlines() -> list:
+    """
+    Deduplicate and return the 30 most recent headlines from _article_cache.
+    _article_cache is populated by scan_for_alerts() during the Finnhub loop.
+    """
+    seen_headlines: set = set()
+    unique: list = []
+    sorted_articles = sorted(_article_cache, key=lambda x: x.get("datetime", 0), reverse=True)
+    for article in sorted_articles:
+        headline = (article.get("headline") or "").strip()
+        if not headline or headline in seen_headlines:
+            continue
+        seen_headlines.add(headline)
+        unique.append({
+            "headline": headline,
+            "summary": (article.get("summary") or "")[:300],
+            "ticker": article.get("ticker", ""),
+            "datetime": article.get("datetime", 0),
+        })
+        if len(unique) >= 30:
+            break
+    return unique
+
+
+async def analyze_headlines_with_ai(headlines: list) -> dict:
+    """
+    Send deduplicated headlines to OpenRouter (google/gemma-3-12b-it) and
+    return structured JSON with macro_summary, sector_impacts, ticker_impacts, etc.
+    Returns a safe empty structure on any failure.
+    """
+    default = {
+        "macro_summary": "",
+        "macro_themes": [],
+        "sector_impacts": [],
+        "ticker_impacts": [],
+        "overall_sentiment": "NEUTRAL",
+    }
+
+    if not OPENROUTER_API_KEY:
+        print("NEWS INTELLIGENCE: Skipped — OPENROUTER_API_KEY not set")
+        return default
+
+    if not headlines:
+        print("NEWS INTELLIGENCE: Skipped — no headlines collected")
+        return default
+
+    headlines_text = "\n".join(
+        f"[{h['ticker']}] {h['headline']}" for h in headlines
+    )
+
+    prompt = f"""You are a financial market analyst. Analyze these recent news headlines and return a JSON object with exactly this structure:
+{{
+  "macro_summary": "2-3 sentence summary of the dominant market narrative this week",
+  "macro_themes": ["theme1", "theme2", "theme3"],
+  "sector_impacts": [
+    {{"sector": "Technology", "direction": "POSITIVE|NEGATIVE|NEUTRAL|MIXED", "reason": "one sentence", "confidence": "HIGH|MEDIUM|LOW"}}
+  ],
+  "ticker_impacts": [
+    {{"ticker": "NVDA", "direction": "POSITIVE|NEGATIVE|NEUTRAL", "reason": "one sentence", "magnitude": 1}}
+  ],
+  "overall_sentiment": "BULLISH|BEARISH|NEUTRAL|MIXED"
+}}
+Only include sectors and tickers that are meaningfully impacted. Do not include tickers not mentioned in the headlines. magnitude is an integer 1-10.
+
+Headlines:
+{headlines_text}"""
+
+    try:
+        await asyncio.sleep(0)  # yield to event loop
+        response = await CLIENT.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://earlybell.app",
+                "X-Title": "EarlyBell",
+            },
+            json={
+                "model": "google/gemma-3-12b-it",
+                "messages": [
+                    {"role": "system", "content": "Respond ONLY in valid JSON, no markdown, no code blocks, no preamble."},
+                    {"role": "user", "content": prompt},
+                ],
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        content = response.json()["choices"][0]["message"]["content"].strip()
+
+        # Strip markdown code fences if the model included them
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+        content = content.strip()
+
+        parsed = json.loads(content)
+        print(f"NEWS INTELLIGENCE: Analysis complete — sentiment={parsed.get('overall_sentiment')}, "
+              f"{len(parsed.get('sector_impacts', []))} sectors, {len(parsed.get('ticker_impacts', []))} tickers")
+        return parsed
+
+    except Exception as e:
+        print(f"NEWS INTELLIGENCE: analyze_headlines_with_ai failed: {type(e).__name__}: {e}")
+        return default
+
+
+# ==========================================
+
 @app.get("/alerts/scan")
 async def scan_for_alerts():
     """
@@ -731,6 +863,7 @@ async def scan_for_alerts():
             sentiment_data = await async_news_sentiment_and_volume(ticker, debug=debug_this)
             item["sentiment_score"] = sentiment_data.get("social_raw", 0.0)
             item["news_count"] = sentiment_data.get("news_raw", 0)
+            item["_articles"] = sentiment_data.get("articles", [])
             if item["news_count"] > 0:
                 print(f"  [{idx+1}/{len(results)}] {ticker}: {item['news_count']} articles, sentiment={item['sentiment_score']:.3f}")
         except Exception as e:
@@ -785,6 +918,14 @@ async def scan_for_alerts():
             item["alert_level"] = "LOW"
 
         await asyncio.sleep(0.5)
+
+    # Populate article cache for news intelligence (consumed after this function returns)
+    global _article_cache
+    _article_cache = []
+    for item in results:
+        for article in item.get("_articles", []):
+            if article.get("headline"):
+                _article_cache.append({**article, "ticker": item["ticker"]})
 
     # Log sentiment results summary
     with_news = [i for i in results if i.get("news_count", 0) > 0]
@@ -965,6 +1106,51 @@ async def get_score_history(ticker: str):
     except Exception as e:
         print(f"score_history read error for {ticker}: {e}")
         return {"error": str(e)}
+
+# ==========================================
+# NEWS INTELLIGENCE ENDPOINTS
+# ==========================================
+
+@app.get("/news/intelligence")
+async def get_news_intelligence():
+    """Returns the single most recent news intelligence analysis."""
+    if not supabase:
+        return {"error": "Database not configured"}
+    try:
+        response = (
+            supabase.table('news_intelligence')
+            .select('*')
+            .order('recorded_at', desc=True)
+            .limit(1)
+            .execute()
+        )
+        rows = response.data or []
+        if not rows:
+            return {"error": "No news intelligence data yet — run a scan first"}
+        return rows[0]
+    except Exception as e:
+        print(f"news_intelligence read error: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/news/history")
+async def get_news_history():
+    """Returns the last 24 news intelligence analyses (24 hours), newest first."""
+    if not supabase:
+        return {"error": "Database not configured"}
+    try:
+        response = (
+            supabase.table('news_intelligence')
+            .select('id,recorded_at,overall_sentiment,macro_summary,headline_count')
+            .order('recorded_at', desc=True)
+            .limit(24)
+            .execute()
+        )
+        return response.data or []
+    except Exception as e:
+        print(f"news_history read error: {e}")
+        return {"error": str(e)}
+
 
 # ==========================================
 # POLYMARKET INTEGRATION
