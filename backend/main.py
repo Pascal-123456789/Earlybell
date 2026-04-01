@@ -918,6 +918,30 @@ async def get_alert_for_ticker(ticker: str):
     result = await detector.get_early_warning_score(ticker.upper())
     return result
     
+@app.get("/history/all")
+async def get_all_score_history():
+    """Returns last 7 days of score_history for all tickers, grouped by ticker.
+    Must be defined before /history/{ticker} or FastAPI routes 'all' as a ticker name."""
+    if not supabase:
+        return {"error": "Database not configured"}
+
+    try:
+        seven_days_ago = (date.today() - timedelta(days=7)).isoformat()
+        response = (
+            supabase.table('score_history')
+            .select('ticker,early_warning_score,alert_level,recorded_at')
+            .gte('recorded_at', seven_days_ago)
+            .order('recorded_at')
+            .execute()
+        )
+        grouped = {}
+        for row in response.data:
+            grouped.setdefault(row['ticker'], []).append(row)
+        return grouped
+    except Exception as e:
+        print(f"score_history bulk read error: {e}")
+        return {"error": str(e)}
+
 @app.get("/history/{ticker}")
 async def get_score_history(ticker: str):
     """Returns last 7 days of score_history for a ticker."""
@@ -937,29 +961,6 @@ async def get_score_history(ticker: str):
         return response.data or []
     except Exception as e:
         print(f"score_history read error for {ticker}: {e}")
-        return {"error": str(e)}
-
-@app.get("/history/all")
-async def get_all_score_history():
-    """Returns last 7 days of score_history for all tickers, grouped by ticker."""
-    if not supabase:
-        return {"error": "Database not configured"}
-
-    try:
-        seven_days_ago = (date.today() - timedelta(days=7)).isoformat()
-        response = (
-            supabase.table('score_history')
-            .select('ticker,early_warning_score,alert_level,recorded_at')
-            .gte('recorded_at', seven_days_ago)
-            .order('recorded_at')
-            .execute()
-        )
-        grouped = {}
-        for row in response.data:
-            grouped.setdefault(row['ticker'], []).append(row)
-        return grouped
-    except Exception as e:
-        print(f"score_history bulk read error: {e}")
         return {"error": str(e)}
 
 # ==========================================

@@ -371,9 +371,9 @@ const MarketScanner = ({ polymarketEvents = [] }) => {
                   <div className="signal-row" title="Reddit/WSB mention spike — high = retail crowd piling in">
                     <span className="signal-label">Social</span>
                     <span className="signal-bar">
-                      <div className="signal-fill social" style={{width: `${(alert.social_score || 0) * 10}%`}}/>
+                      <div className="signal-fill social" style={{width: `${(alert.social_score ?? 0) * 10}%`}}/>
                     </span>
-                    <span className="signal-value">{alert.social_score || 0}/10</span>
+                    <span className="signal-value">{alert.social_score ?? 0}/10</span>
                   </div>
 
                   <div className="signal-row" title="SEC Form 4 insider purchases in last 30 days — high = executives buying their own stock">
@@ -447,6 +447,15 @@ const MarketScanner = ({ polymarketEvents = [] }) => {
                       <span className="detail-val">{formatDetail(alert.social_rank, 0, true)}</span>
                       <span className="detail-key">Upvotes</span>
                       <span className="detail-val">{formatDetail(alert.social_upvotes, 0, true)}</span>
+                    </div>
+                  </div>
+                  <div className="detail-section">
+                    <h4>Insider Buying</h4>
+                    <div className="detail-grid">
+                      <span className="detail-key">Score</span>
+                      <span className="detail-val">{alert.insider_score ?? 0}/10</span>
+                      <span className="detail-key">Purchases (30d)</span>
+                      <span className="detail-val">{formatDetail(alert.insider_purchases_30d, 0, true)}</span>
                     </div>
                   </div>
                 </div>

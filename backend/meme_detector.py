@@ -481,29 +481,25 @@ class MemeStockDetector:
                         except ValueError:
                             pass
 
-            # If no clear purchase signals found in text, use filing count as proxy
-            # (many Form 4s are purchases, especially for non-mega-cap stocks)
-            if purchases == 0 and total_filings > 0:
-                # Conservative: count ~40% of filings as potential purchases
-                purchases = max(1, total_filings // 3) if total_filings >= 3 else 0
+            # No fallback to total_filings — raw filing count inflates scores
+            # massively for large-cap tickers (e.g. V showing 125 "purchases").
+            # Only score confirmed purchase indicators found in filing text.
 
-            # Scoring
+            # Scoring — thresholds raised to account for EFTS over-matching.
+            # The %22{ticker}%22 query matches ticker mentioned anywhere in any
+            # filing, not just as the issuer. Higher counts are needed before
+            # signalling unusual insider activity.
             score = 0
             unusual = False
 
-            if purchases >= 4:
+            if purchases >= 20:
                 score = 9
                 unusual = True
-            elif purchases >= 2:
+            elif purchases >= 10:
                 score = 6
                 unusual = True
-            elif purchases >= 1:
+            elif purchases >= 5:
                 score = 3
-
-            # Bonus for large buy volume
-            if total_buy_volume > 500_000:
-                score = min(score + 1, 10)
-                unusual = True
 
             print(f"Insider signal for {ticker}: {purchases} purchases in 30d, ${total_buy_volume:,.0f} volume, score {score}/10")
 
