@@ -3,18 +3,30 @@ import './NewsIntelligence.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
-const SENTIMENT_CLS = {
-  BULLISH: 'bullish',
-  BEARISH: 'bearish',
-  MIXED:   'mixed',
-  NEUTRAL: 'neutral',
+// ── Config maps ────────────────────────────────────────────────────────────
+const CONFLUENCE_TYPE = {
+  CONFIRMED:        { label: 'CONFIRMED',        cls: 'conf-confirmed' },
+  DIVERGENCE:       { label: 'DIVERGENCE',        cls: 'conf-divergence' },
+  CATALYST_RISK:    { label: 'CATALYST RISK',     cls: 'conf-catalyst' },
+  INSIDER_CATALYST: { label: 'INSIDER CATALYST',  cls: 'conf-insider' },
 };
 
-const DIRECTION_CFG = {
-  POSITIVE: { arrow: '▲', cls: 'positive' },
-  NEGATIVE: { arrow: '▼', cls: 'negative' },
-  NEUTRAL:  { arrow: '→', cls: 'neutral' },
-  MIXED:    { arrow: '↕', cls: 'mixed' },
+const FLAG_TYPE = {
+  EARNINGS_RISK:    { cls: 'flag-amber' },
+  UNUSUAL_ACTIVITY: { cls: 'flag-blue' },
+  CONTRARIAN:       { cls: 'flag-red' },
+  BREAKOUT_SETUP:   { cls: 'flag-green' },
+  INSIDER_ALERT:    { cls: 'flag-purple' },
+};
+
+const FLOW_ARROW = { INTO: '▲', OUT_OF: '▼', NEUTRAL: '→' };
+const FLOW_CLS   = { INTO: 'flow-into', OUT_OF: 'flow-out', NEUTRAL: 'flow-neutral' };
+const DIR_ARROW  = { BULLISH: '▲', BEARISH: '▼', NEUTRAL: '→' };
+const DIR_CLS    = { BULLISH: 'dir-bull', BEARISH: 'dir-bear', NEUTRAL: 'dir-neutral' };
+
+const SENTIMENT_CLS = {
+  BULLISH: 'sent-bull', BEARISH: 'sent-bear',
+  MIXED: 'sent-mixed', NEUTRAL: 'sent-neutral',
 };
 
 function formatAge(ts) {
@@ -27,33 +39,33 @@ function formatAge(ts) {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
+// ── Skeleton ───────────────────────────────────────────────────────────────
 const LoadingSkeleton = () => (
-  <div className="content-area news-intelligence">
-    <div className="ni-header skeleton-box" style={{ height: 48 }} />
-    <div className="ni-section">
-      <div className="skeleton-box" style={{ height: 11, width: 120, marginBottom: 12 }} />
-      <div className="skeleton-box" style={{ height: 80 }} />
+  <div className="ni-page">
+    <div className="ni-header">
+      <span className="ni-title">NEWS RADAR</span>
+    </div>
+    <div className="ni-narrative-block">
+      <div className="ni-skel" style={{ height: 14, width: '90%', marginBottom: 8 }} />
+      <div className="ni-skel" style={{ height: 14, width: '75%', marginBottom: 8 }} />
+      <div className="ni-skel" style={{ height: 14, width: '60%' }} />
     </div>
     <div className="ni-section">
-      <div className="skeleton-box" style={{ height: 11, width: 100, marginBottom: 12 }} />
-      <div className="ni-sector-grid">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="skeleton-box" style={{ height: 90 }} />
-        ))}
-      </div>
-    </div>
-    <div className="ni-section">
-      <div className="skeleton-box" style={{ height: 11, width: 100, marginBottom: 12 }} />
-      <div className="skeleton-box" style={{ height: 180 }} />
+      <div className="ni-section-label">SIGNAL x CATALYST CONFLUENCES</div>
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="ni-skel-row" style={{ opacity: 1 - i * 0.15 }} />
+      ))}
     </div>
   </div>
 );
 
+// ── Main component ─────────────────────────────────────────────────────────
 const NewsIntelligence = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [data, setData]           = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(null);
   const [headlinesOpen, setHeadlinesOpen] = useState(false);
+  const [expandedRow, setExpandedRow]     = useState(null);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/news/intelligence`)
@@ -70,33 +82,33 @@ const NewsIntelligence = () => {
 
   if (error || !data) {
     return (
-      <div className="content-area news-intelligence">
-        <div className="ni-empty">
-          <h2>News Radar</h2>
-          <p>{error || 'No data available yet.'}</p>
-          <p className="ni-hint">News analysis runs automatically each hour alongside the market scan. Check back after the next scheduled update.</p>
+      <div className="ni-page">
+        <div className="ni-header">
+          <span className="ni-title">NEWS RADAR</span>
+        </div>
+        <div className="ni-empty-state">
+          <p>Analysis unavailable — will retry next hourly scan</p>
+          {error && <p className="ni-empty-hint">{error}</p>}
         </div>
       </div>
     );
   }
 
-  const sentimentCls = SENTIMENT_CLS[data.overall_sentiment] || 'neutral';
-
-  const sortedSectors = [...(data.sector_impacts || [])].sort((a, b) => {
-    const order = { NEGATIVE: 0, POSITIVE: 1, MIXED: 2, NEUTRAL: 3 };
-    return (order[a.direction] ?? 3) - (order[b.direction] ?? 3);
-  });
-
-  const sortedTickers = [...(data.ticker_impacts || [])].sort((a, b) => (b.magnitude || 0) - (a.magnitude || 0));
+  const sentimentCls = SENTIMENT_CLS[data.overall_sentiment] || 'sent-neutral';
+  const confluences  = data.confluences   || [];
+  const rotation     = data.sector_rotation || [];
+  const flags        = data.watchlist_flags || [];
+  const headlines    = data.headlines      || [];
+  const themes       = data.macro_themes   || [];
 
   return (
-    <div className="content-area news-intelligence">
+    <div className="ni-page">
 
       {/* ── Header ── */}
       <div className="ni-header">
         <span className="ni-title">NEWS RADAR</span>
-        <div className="ni-header-meta">
-          <span className={`ni-sentiment-pill ni-sentiment-${sentimentCls}`}>
+        <div className="ni-header-right">
+          <span className={`ni-sentiment-pill ${sentimentCls}`}>
             {data.overall_sentiment || 'NEUTRAL'}
           </span>
           <span className="ni-meta-ts">
@@ -105,108 +117,138 @@ const NewsIntelligence = () => {
         </div>
       </div>
 
-      {/* ── Market Narrative ── */}
-      <section className="ni-section">
-        <h2 className="ni-section-title">Market Narrative</h2>
-        <div className="ni-narrative">
-          <p className="ni-macro-summary">
-            {data.macro_summary || <span className="ni-no-data">No summary available.</span>}
-          </p>
-          {(data.macro_themes || []).length > 0 && (
+      {/* ── Macro narrative ── */}
+      {data.macro_summary && (
+        <div className="ni-narrative-block">
+          <p className="ni-macro-text">{data.macro_summary}</p>
+          {themes.length > 0 && (
             <div className="ni-themes">
-              {data.macro_themes.map((theme, i) => (
-                <span key={i} className="ni-theme-pill">{theme}</span>
-              ))}
+              {themes.map((t, i) => <span key={i} className="ni-theme-pill">{t}</span>)}
             </div>
           )}
         </div>
-      </section>
+      )}
 
-      {/* ── Sector Impacts ── */}
-      <section className="ni-section">
-        <h2 className="ni-section-title">Sector Impacts</h2>
-        {sortedSectors.length === 0 ? (
-          <p className="ni-no-data">No sector impacts identified in this analysis.</p>
+      {/* ════════════════════════════════════════
+          SIGNAL × CATALYST CONFLUENCES
+      ════════════════════════════════════════ */}
+      <div className="ni-section">
+        <div className="ni-section-label">SIGNAL x CATALYST CONFLUENCES</div>
+
+        {confluences.length === 0 ? (
+          <div className="ni-no-confluences">
+            No confluences detected this hour — signals and news are not overlapping
+          </div>
         ) : (
-          <div className="ni-sector-grid">
-            {sortedSectors.map((s, i) => {
-              const cfg = DIRECTION_CFG[s.direction] || DIRECTION_CFG.NEUTRAL;
+          <div className="ni-conf-list">
+            {confluences.map((c, i) => {
+              const typeCfg = CONFLUENCE_TYPE[c.type] || CONFLUENCE_TYPE.CONFIRMED;
+              const dirCls  = DIR_CLS[c.direction]  || 'dir-neutral';
+              const dirArr  = DIR_ARROW[c.direction] || '→';
+              const isOpen  = expandedRow === i;
+
               return (
-                <div key={i} className="ni-sector-card">
-                  <div className="ni-sector-header">
-                    <span className="ni-sector-name">{s.sector}</span>
-                    <span className={`ni-dir-label ni-arrow-${cfg.cls}`}>
-                      {cfg.arrow} {s.direction}
-                    </span>
+                <div
+                  key={i}
+                  className={`ni-conf-row${isOpen ? ' ni-conf-row--open' : ''}`}
+                  onClick={() => setExpandedRow(isOpen ? null : i)}
+                >
+                  {/* Left meta */}
+                  <div className="ni-conf-left">
+                    <span className={`ni-type-badge ${typeCfg.cls}`}>{typeCfg.label}</span>
+                    <span className="ni-conf-ticker">{c.ticker}</span>
+                    <span className={`ni-conf-dir ${dirCls}`}>{dirArr}</span>
                   </div>
-                  <p className="ni-sector-reason">{s.reason}</p>
-                  <span className="ni-confidence">
-                    {s.confidence}
-                  </span>
+
+                  {/* Body */}
+                  <div className="ni-conf-body">
+                    <span className="ni-conf-headline">{c.headline}</span>
+                    {c.insight && (
+                      <span className="ni-conf-insight"> · {c.insight}</span>
+                    )}
+                    {isOpen && c.signal_context && (
+                      <div className="ni-conf-context">{c.signal_context}</div>
+                    )}
+                  </div>
+
+                  {/* Right meta */}
+                  <div className="ni-conf-right">
+                    <span className="ni-conf-score">{(c.signal_score || 0).toFixed(1)}</span>
+                    <span className="ni-conf-confidence">{c.confidence}</span>
+                  </div>
                 </div>
               );
             })}
           </div>
         )}
-      </section>
+      </div>
 
-      {/* ── Ticker Impacts ── */}
-      <section className="ni-section">
-        <h2 className="ni-section-title">Ticker Impacts</h2>
-        {sortedTickers.length === 0 ? (
-          <p className="ni-no-data">No ticker impacts identified in this analysis.</p>
-        ) : (
-          <div className="ni-ticker-table">
-            <div className="ni-ticker-header">
-              <span>Ticker</span>
-              <span>Direction</span>
-              <span>Magnitude</span>
-              <span>Reason</span>
-            </div>
-            {sortedTickers.map((t, i) => {
-              const cfg = DIRECTION_CFG[t.direction] || DIRECTION_CFG.NEUTRAL;
+      {/* ════════════════════════════════════════
+          SECTOR ROTATION
+      ════════════════════════════════════════ */}
+      {rotation.length > 0 && (
+        <div className="ni-section">
+          <div className="ni-section-label">SECTOR ROTATION</div>
+          <div className="ni-rotation-pills">
+            {rotation.map((s, i) => {
+              const arrow   = FLOW_ARROW[s.flow] || '→';
+              const flowCls = FLOW_CLS[s.flow]   || 'flow-neutral';
               return (
-                <div key={i} className="ni-ticker-row">
-                  <span className="ni-ticker-symbol">{t.ticker}</span>
-                  <span className={`ni-ticker-dir ni-arrow-${cfg.cls}`}>
-                    {cfg.arrow} {t.direction}
+                <span key={i} className="ni-sector-pill" title={s.reason}>
+                  <span className={`ni-flow-arrow ${flowCls}`}>{arrow}</span>
+                  {' '}{s.sector}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════
+          FLAGS TO WATCH
+      ════════════════════════════════════════ */}
+      {flags.length > 0 && (
+        <div className="ni-section">
+          <div className="ni-section-label">FLAGS TO WATCH</div>
+          <div className="ni-flag-list">
+            {flags.map((f, i) => {
+              const flagCfg = FLAG_TYPE[f.flag] || { cls: 'flag-amber' };
+              return (
+                <div key={i} className="ni-flag-row">
+                  <span className={`ni-flag-badge ${flagCfg.cls}`}>
+                    {(f.flag || '').replace(/_/g, ' ')}
                   </span>
-                  <div className="ni-magnitude-cell">
-                    <div className="ni-magnitude-bar">
-                      <div
-                        className={`ni-magnitude-fill ni-fill-${cfg.cls}`}
-                        style={{ width: `${(t.magnitude || 0) * 10}%` }}
-                      />
-                    </div>
-                    <span className="ni-magnitude-value">{t.magnitude || 0}/10</span>
-                  </div>
-                  <span className="ni-ticker-reason">{t.reason}</span>
+                  <span className="ni-flag-ticker">{f.ticker}</span>
+                  <span className="ni-flag-reason">{f.reason}</span>
                 </div>
               );
             })}
           </div>
-        )}
-      </section>
+        </div>
+      )}
 
-      {/* ── Headlines collapsible ── */}
-      <section className="ni-section">
+      {/* ════════════════════════════════════════
+          HEADLINES ANALYZED (collapsible)
+      ════════════════════════════════════════ */}
+      <div className="ni-section">
         <button
           className="ni-headlines-toggle"
           onClick={() => setHeadlinesOpen(o => !o)}
         >
-          {headlinesOpen ? '▾' : '▸'} Headlines Analyzed ({(data.headlines || []).length})
+          <span className="ni-toggle-arrow">{headlinesOpen ? '▾' : '▸'}</span>
+          Headlines Analyzed ({headlines.length})
         </button>
         {headlinesOpen && (
           <div className="ni-headlines-list">
-            {(data.headlines || []).map((h, i) => (
-              <div key={i} className="ni-headline-item">
-                <span className="ni-headline-ticker">{h.ticker}</span>
-                <span className="ni-headline-text">{h.headline}</span>
+            {headlines.map((h, i) => (
+              <div key={i} className="ni-headline-row">
+                <span className="ni-hl-ticker">{h.ticker}</span>
+                <span className="ni-hl-text">{h.headline}</span>
               </div>
             ))}
           </div>
         )}
-      </section>
+      </div>
 
     </div>
   );

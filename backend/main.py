@@ -169,15 +169,30 @@ async def scheduled_update_loop():
 
         try:
             print("AUTO-UPDATE: Running news intelligence analysis...")
+            # Fetch top 20 alert rows to give the AI quantitative context
+            signal_data_for_ai = []
+            if supabase:
+                try:
+                    top_alerts = supabase.table('meme_alerts').select(
+                        'ticker,alert_score,alert_level,options_score,volume_score,social_score,'
+                        'insider_score,insider_purchases_30d,sentiment_score,news_count,'
+                        'earnings_date,earnings_time'
+                    ).order('alert_score', desc=True).limit(20).execute()
+                    signal_data_for_ai = top_alerts.data or []
+                    print(f"AUTO-UPDATE: Fetched {len(signal_data_for_ai)} signal rows for AI context")
+                except Exception as e:
+                    print(f"AUTO-UPDATE: Failed to fetch signal data for AI: {e}")
+
             headlines = collect_top_headlines()
-            analysis = await analyze_headlines_with_ai(headlines)
+            analysis = await analyze_headlines_with_ai(headlines, signal_data_for_ai)
             if supabase:
                 supabase.table('news_intelligence').insert({
                     **analysis,
                     "headline_count": len(headlines),
                     "headlines": headlines,
                 }).execute()
-            print(f"AUTO-UPDATE: News intelligence saved ({len(headlines)} headlines analyzed)")
+            print(f"AUTO-UPDATE: News intelligence saved ({len(headlines)} headlines, "
+                  f"{len(analysis.get('confluences', []))} confluences)")
         except Exception as e:
             print(f"AUTO-UPDATE: news intelligence FAILED: {e}")
 
@@ -722,18 +737,18 @@ def collect_top_headlines() -> list:
     return unique
 
 
-async def analyze_headlines_with_ai(headlines: list) -> dict:
+async def analyze_headlines_with_ai(headlines: list, signal_data: list = None) -> dict:
     """
-    Send deduplicated headlines to OpenRouter (meta-llama/llama-3.3-70b-instruct) and
-    return structured JSON with macro_summary, sector_impacts, ticker_impacts, etc.
-    Returns a safe empty structure on any failure.
+    Cross-reference recent headlines with quantitative signal data to produce
+    Signal x Catalyst Confluence analysis. Returns a safe empty structure on failure.
     """
     default = {
         "macro_summary": "",
         "macro_themes": [],
-        "sector_impacts": [],
-        "ticker_impacts": [],
         "overall_sentiment": "NEUTRAL",
+        "confluences": [],
+        "sector_rotation": [],
+        "watchlist_flags": [],
     }
 
     if not OPENROUTER_API_KEY:
@@ -748,22 +763,78 @@ async def analyze_headlines_with_ai(headlines: list) -> dict:
         f"[{h['ticker']}] {h['headline']}" for h in headlines
     )
 
-    prompt = f"""You are a financial market analyst. Analyze these recent news headlines and return a JSON object with exactly this structure:
-{{
-  "macro_summary": "2-3 sentence summary of the dominant market narrative this week",
-  "macro_themes": ["theme1", "theme2", "theme3"],
-  "sector_impacts": [
-    {{"sector": "Technology", "direction": "POSITIVE|NEGATIVE|NEUTRAL|MIXED", "reason": "one sentence", "confidence": "HIGH|MEDIUM|LOW"}}
-  ],
-  "ticker_impacts": [
-    {{"ticker": "NVDA", "direction": "POSITIVE|NEGATIVE|NEUTRAL", "reason": "one sentence", "magnitude": 1}}
-  ],
-  "overall_sentiment": "BULLISH|BEARISH|NEUTRAL|MIXED"
-}}
-Only include sectors and tickers that are meaningfully impacted. Do not include tickers not mentioned in the headlines. magnitude is an integer 1-10.
+    if signal_data:
+        signal_lines = []
+        for s in signal_data[:20]:
+            line = (
+                f"{s.get('ticker', '?')}: alert={s.get('alert_score', 0):.1f}"
+                f" ({s.get('alert_level', 'LOW')})"
+                f" options={s.get('options_score', 0)}/10"
+                f" volume={s.get('volume_score', 0)}/10"
+                f" social={s.get('social_score', 0)}/10"
+                f" insider={s.get('insider_score', 0)}/10"
+                f" purchases30d={s.get('insider_purchases_30d', 0)}"
+                f" sentiment={s.get('sentiment_score', 0):.3f}"
+                f" news={s.get('news_count', 0)}"
+            )
+            if s.get('earnings_date'):
+                line += f" earnings={s['earnings_date']}"
+                if s.get('earnings_time'):
+                    line += f"({s['earnings_time']})"
+            signal_lines.append(line)
+        signal_data_text = "\n".join(signal_lines)
+    else:
+        signal_data_text = "(no signal data available)"
 
-Headlines:
-{headlines_text}"""
+    prompt = f"""You are a quantitative financial analyst. You have two data sources:
+
+1. RECENT NEWS HEADLINES (last hour):
+{headlines_text}
+
+2. CURRENT UNUSUAL ACTIVITY SIGNALS (quantitative, updated hourly):
+{signal_data_text}
+Signal scores are 0-10. Options = unusual call buying. Volume = spike vs 30d avg. Social = Reddit/WSB mentions. Insider = SEC Form 4 purchases.
+
+Analyze both sources together and return ONLY a valid JSON object with exactly this structure, no markdown, no explanation:
+{{
+  "macro_summary": "2-3 sentences describing the dominant market narrative and what smart money appears to be doing based on BOTH news and signals",
+  "macro_themes": ["theme1", "theme2", "theme3"],
+  "overall_sentiment": "BULLISH|BEARISH|NEUTRAL|MIXED",
+  "confluences": [
+    {{
+      "ticker": "NVDA",
+      "type": "CONFIRMED|DIVERGENCE|CATALYST_RISK|INSIDER_CATALYST",
+      "signal_score": 8.2,
+      "direction": "BULLISH|BEARISH|NEUTRAL",
+      "headline": "one sentence: what the news says",
+      "signal_context": "one sentence: what the signals show",
+      "insight": "one sentence: why the combination is interesting or actionable",
+      "confidence": "HIGH|MEDIUM|LOW"
+    }}
+  ],
+  "sector_rotation": [
+    {{
+      "sector": "Technology",
+      "flow": "INTO|OUT_OF|NEUTRAL",
+      "reason": "one sentence combining news and signal evidence"
+    }}
+  ],
+  "watchlist_flags": [
+    {{
+      "ticker": "JPM",
+      "flag": "EARNINGS_RISK|UNUSUAL_ACTIVITY|CONTRARIAN|BREAKOUT_SETUP|INSIDER_ALERT",
+      "reason": "one sentence"
+    }}
+  ]
+}}
+
+Confluence types:
+- CONFIRMED: news catalyst explains the unusual signal activity (both point same direction)
+- DIVERGENCE: signals and news contradict each other (e.g. bullish options but negative news)
+- CATALYST_RISK: upcoming event (earnings, Fed decision) with elevated signals — potential volatility
+- INSIDER_CATALYST: insider purchases aligning with a news catalyst
+
+Only include tickers in confluences if they appear in BOTH the headlines AND the signal data. Maximum 8 confluences. Maximum 5 watchlist flags. Order confluences by signal_score descending."""
 
     try:
         await asyncio.sleep(0)  # yield to event loop
@@ -782,13 +853,13 @@ Headlines:
                     {"role": "user", "content": prompt},
                 ],
             },
-            timeout=30,
+            timeout=40,
         )
         response.raise_for_status()
         raw_content = response.json()["choices"][0]["message"]["content"]
         print(f"NEWS INTELLIGENCE RAW RESPONSE ({len(raw_content)} chars): {raw_content[:600]}")
 
-        # Strip markdown code fences — Llama often adds them despite being told not to
+        # Strip markdown code fences if the model adds them despite being told not to
         text = raw_content.strip()
         if text.startswith("```"):
             parts = text.split("```")
@@ -798,10 +869,13 @@ Headlines:
         text = text.strip()
 
         parsed = json.loads(text)
-        print(f"NEWS INTELLIGENCE PARSED: sentiment={parsed.get('overall_sentiment')}, "
-              f"{len(parsed.get('sector_impacts', []))} sectors, "
-              f"{len(parsed.get('ticker_impacts', []))} tickers, "
-              f"themes={parsed.get('macro_themes', [])}")
+        print(
+            f"NEWS INTELLIGENCE PARSED: sentiment={parsed.get('overall_sentiment')}, "
+            f"{len(parsed.get('confluences', []))} confluences, "
+            f"{len(parsed.get('sector_rotation', []))} sectors, "
+            f"{len(parsed.get('watchlist_flags', []))} flags, "
+            f"themes={parsed.get('macro_themes', [])}"
+        )
         return parsed
 
     except Exception as e:
