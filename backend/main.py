@@ -724,7 +724,7 @@ def collect_top_headlines() -> list:
 
 async def analyze_headlines_with_ai(headlines: list) -> dict:
     """
-    Send deduplicated headlines to OpenRouter (google/gemma-3-12b-it) and
+    Send deduplicated headlines to OpenRouter (meta-llama/llama-3.3-70b-instruct) and
     return structured JSON with macro_summary, sector_impacts, ticker_impacts, etc.
     Returns a safe empty structure on any failure.
     """
@@ -776,7 +776,7 @@ Headlines:
                 "X-Title": "EarlyBell",
             },
             json={
-                "model": "google/gemma-3-12b-it",
+                "model": "meta-llama/llama-3.3-70b-instruct",
                 "messages": [
                     {"role": "system", "content": "Respond ONLY in valid JSON, no markdown, no code blocks, no preamble."},
                     {"role": "user", "content": prompt},
