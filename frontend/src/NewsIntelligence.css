@@ -1,6 +1,11 @@
 /* NewsIntelligence.css — Signal × Catalyst Confluence page */
 /* Matches Scanner design tokens exactly. No shadows, no gradients, border-radius max 3px. */
 
+/* ── Full-page background override ────────────────────────────────────────*/
+.main-content:has(.ni-page) {
+  background: #080f1a;
+}
+
 /* ── Page wrapper ─────────────────────────────────────────────────────────*/
 .ni-page {
   max-width: 1100px;
@@ -20,7 +25,7 @@
   gap: 10px;
   padding: 14px 0 16px;
   border-bottom: 1px solid #1a2740;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .ni-title {
@@ -62,16 +67,16 @@
 
 /* ── Macro narrative ──────────────────────────────────────────────────────*/
 .ni-narrative-block {
-  border-left: 2px solid #1a2740;
-  padding-left: 16px;
+  padding: 0 0 24px;
   margin-bottom: 24px;
+  border-bottom: 1px solid #1a2740;
 }
 
 .ni-macro-text {
-  font-size: 14px;
-  color: #94a3b8;
-  line-height: 1.6;
-  margin: 0 0 12px;
+  font-size: 15px;
+  color: #cbd5e1;
+  line-height: 1.7;
+  margin: 0 0 14px;
 }
 
 .ni-themes {
@@ -81,33 +86,33 @@
 }
 
 .ni-theme-pill {
-  background: #0d1526;
-  border: 1px solid #1a2740;
+  background: #111d2e;
+  border: 1px solid #243350;
   color: #64748b;
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: 3px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 /* ── Section structure ────────────────────────────────────────────────────*/
 .ni-section {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
 .ni-section-label {
   font-size: 11px;
   font-weight: 600;
-  color: #334155;
+  color: #475569;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 8px;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
 }
 
 /* ── No-data / empty ──────────────────────────────────────────────────────*/
 .ni-no-confluences {
   font-size: 12px;
   color: #334155;
-  padding: 16px 0;
+  padding: 20px 0;
   border-top: 1px solid #1a2740;
 }
 
@@ -131,7 +136,7 @@
 }
 
 .ni-skel-row {
-  height: 72px;
+  height: 80px;
   background: #0d1526;
   border-bottom: 1px solid #1a2740;
   animation: ni-pulse 1.5s ease-in-out infinite;
@@ -151,17 +156,15 @@
 
 .ni-conf-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  min-height: 72px;
-  padding: 10px 0;
+  min-height: 80px;
+  padding: 12px 0;
   border-bottom: 1px solid #1a2740;
-  cursor: pointer;
   transition: background 0.1s;
 }
 
-.ni-conf-row:hover,
-.ni-conf-row--open {
+.ni-conf-row:hover {
   background: #0d1526;
   padding-left: 8px;
   margin-left: -8px;
@@ -172,10 +175,17 @@
 /* Left column: badge + ticker + direction */
 .ni-conf-left {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 5px;
   flex-shrink: 0;
-  width: 220px;
+  width: 130px;
+  padding-top: 2px;
+}
+
+.ni-conf-ticker-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Type badge */
@@ -187,6 +197,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
+  align-self: flex-start;
 }
 
 .conf-confirmed  { background: rgba(34,197,94,0.1);  color: #22c55e; }
@@ -195,10 +206,9 @@
 .conf-insider    { background: rgba(167,139,250,0.1); color: #a78bfa; }
 
 .ni-conf-ticker {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #e2e8f0;
-  min-width: 44px;
 }
 
 .ni-conf-dir {
@@ -209,40 +219,44 @@
 .dir-bear    { color: #ef4444; }
 .dir-neutral { color: #64748b; }
 
-/* Body column */
+/* Body column — 3 lines */
 .ni-conf-body {
   flex: 1;
   min-width: 0;
-  font-size: 12px;
-  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 2px;
 }
 
+/* Line 1: headline text */
 .ni-conf-headline {
-  color: #64748b;
+  font-size: 13px;
+  color: #94a3b8;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  display: block;
+  line-height: 1.4;
 }
 
-.ni-conf-row--open .ni-conf-headline {
-  white-space: normal;
-}
-
+/* Line 2: insight */
 .ni-conf-insight {
-  color: #475569;
-  font-size: 11px;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.ni-conf-row:not(.ni-conf-row--open) .ni-conf-insight {
-  display: none;
-}
-
+/* Line 3: signal context */
 .ni-conf-context {
-  margin-top: 4px;
   font-size: 11px;
   color: #475569;
   line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Right column */
@@ -250,15 +264,17 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 3px;
   flex-shrink: 0;
-  min-width: 48px;
+  min-width: 52px;
+  padding-top: 2px;
 }
 
 .ni-conf-score {
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: 16px;
+  color: #e2e8f0;
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 .ni-conf-confidence {
@@ -284,7 +300,7 @@
   background: #0d1526;
   border: 1px solid #1a2740;
   border-radius: 3px;
-  padding: 4px 10px;
+  padding: 6px 12px;
   font-size: 12px;
   color: #94a3b8;
   cursor: default;
@@ -315,9 +331,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 44px;
+  min-height: 48px;
   border-bottom: 1px solid #0d1526;
-  padding: 0 4px;
+  padding: 8px 4px;
   transition: background 0.1s;
 }
 
@@ -359,56 +375,39 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   HEADLINES COLLAPSIBLE
+   HEADLINES CARD GRID
 ════════════════════════════════════════════════════════════════════════*/
-.ni-headlines-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 7px 12px;
+.ni-headlines-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.ni-hl-card {
   background: #0d1526;
   border: 1px solid #1a2740;
   border-radius: 3px;
-  color: #334155;
-  font-size: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.ni-hl-card--clickable {
   cursor: pointer;
-  text-align: left;
-  transition: border-color 0.12s, color 0.12s;
 }
 
-.ni-headlines-toggle:hover {
+.ni-hl-card--clickable:hover {
+  background: #111d2e;
   border-color: #243350;
-  color: #64748b;
 }
 
-.ni-toggle-arrow {
-  font-size: 11px;
-}
-
-.ni-headlines-list {
-  margin-top: 4px;
-  border: 1px solid #1a2740;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.ni-headline-row {
+.ni-hl-card-top {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 32px;
-  padding: 0 12px;
-  border-bottom: 1px solid #0d1526;
-  transition: background 0.1s;
-}
-
-.ni-headline-row:last-child {
-  border-bottom: none;
-}
-
-.ni-headline-row:hover {
-  background: #0d1526;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .ni-hl-ticker {
@@ -417,18 +416,27 @@
   font-weight: 600;
   color: #64748b;
   background: #111d2e;
-  padding: 1px 5px;
+  padding: 2px 6px;
   border-radius: 2px;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.ni-hl-text {
-  font-size: 11px;
-  color: #475569;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.ni-hl-ts {
+  font-size: 10px;
+  color: #334155;
   white-space: nowrap;
+  margin-left: auto;
+}
+
+.ni-hl-text {
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────────*/
@@ -439,14 +447,14 @@
   }
 
   .ni-conf-left {
-    width: 160px;
+    width: 110px;
   }
 
-  .ni-conf-insight {
+  .ni-conf-context {
     display: none;
   }
 
-  .ni-rotation-pills {
-    gap: 4px;
+  .ni-headlines-grid {
+    grid-template-columns: 1fr;
   }
 }

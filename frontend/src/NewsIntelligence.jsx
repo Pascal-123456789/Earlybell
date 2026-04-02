@@ -39,6 +39,16 @@ function formatAge(ts) {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
+function formatArticleTs(unixSecs) {
+  if (!unixSecs) return '';
+  const mins = Math.round((Date.now() / 1000 - unixSecs) / 60);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
+}
+
 // ── Skeleton ───────────────────────────────────────────────────────────────
 const LoadingSkeleton = () => (
   <div className="ni-page">
@@ -46,9 +56,9 @@ const LoadingSkeleton = () => (
       <span className="ni-title">NEWS RADAR</span>
     </div>
     <div className="ni-narrative-block">
-      <div className="ni-skel" style={{ height: 14, width: '90%', marginBottom: 8 }} />
-      <div className="ni-skel" style={{ height: 14, width: '75%', marginBottom: 8 }} />
-      <div className="ni-skel" style={{ height: 14, width: '60%' }} />
+      <div className="ni-skel" style={{ height: 15, width: '90%', marginBottom: 10 }} />
+      <div className="ni-skel" style={{ height: 15, width: '75%', marginBottom: 10 }} />
+      <div className="ni-skel" style={{ height: 15, width: '60%' }} />
     </div>
     <div className="ni-section">
       <div className="ni-section-label">SIGNAL x CATALYST CONFLUENCES</div>
@@ -61,11 +71,9 @@ const LoadingSkeleton = () => (
 
 // ── Main component ─────────────────────────────────────────────────────────
 const NewsIntelligence = () => {
-  const [data, setData]           = useState(null);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState(null);
-  const [headlinesOpen, setHeadlinesOpen] = useState(false);
-  const [expandedRow, setExpandedRow]     = useState(null);
+  const [data, setData]       = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/news/intelligence`)
@@ -95,11 +103,11 @@ const NewsIntelligence = () => {
   }
 
   const sentimentCls = SENTIMENT_CLS[data.overall_sentiment] || 'sent-neutral';
-  const confluences  = data.confluences   || [];
+  const confluences  = data.confluences    || [];
   const rotation     = data.sector_rotation || [];
   const flags        = data.watchlist_flags || [];
-  const headlines    = data.headlines      || [];
-  const themes       = data.macro_themes   || [];
+  const headlines    = data.headlines       || [];
+  const themes       = data.macro_themes    || [];
 
   return (
     <div className="ni-page">
@@ -145,36 +153,35 @@ const NewsIntelligence = () => {
               const typeCfg = CONFLUENCE_TYPE[c.type] || CONFLUENCE_TYPE.CONFIRMED;
               const dirCls  = DIR_CLS[c.direction]  || 'dir-neutral';
               const dirArr  = DIR_ARROW[c.direction] || '→';
-              const isOpen  = expandedRow === i;
 
               return (
-                <div
-                  key={i}
-                  className={`ni-conf-row${isOpen ? ' ni-conf-row--open' : ''}`}
-                  onClick={() => setExpandedRow(isOpen ? null : i)}
-                >
+                <div key={i} className="ni-conf-row">
                   {/* Left meta */}
                   <div className="ni-conf-left">
                     <span className={`ni-type-badge ${typeCfg.cls}`}>{typeCfg.label}</span>
-                    <span className="ni-conf-ticker">{c.ticker}</span>
-                    <span className={`ni-conf-dir ${dirCls}`}>{dirArr}</span>
+                    <div className="ni-conf-ticker-row">
+                      <span className="ni-conf-ticker">{c.ticker}</span>
+                      <span className={`ni-conf-dir ${dirCls}`}>{dirArr}</span>
+                    </div>
                   </div>
 
-                  {/* Body */}
+                  {/* Body — 3 lines */}
                   <div className="ni-conf-body">
                     <span className="ni-conf-headline">{c.headline}</span>
                     {c.insight && (
-                      <span className="ni-conf-insight"> · {c.insight}</span>
+                      <span className="ni-conf-insight">{c.insight}</span>
                     )}
-                    {isOpen && c.signal_context && (
-                      <div className="ni-conf-context">{c.signal_context}</div>
+                    {c.signal_context && (
+                      <span className="ni-conf-context">{c.signal_context}</span>
                     )}
                   </div>
 
                   {/* Right meta */}
                   <div className="ni-conf-right">
                     <span className="ni-conf-score">{(c.signal_score || 0).toFixed(1)}</span>
-                    <span className="ni-conf-confidence">{c.confidence}</span>
+                    {c.confidence && (
+                      <span className="ni-conf-confidence">{c.confidence}</span>
+                    )}
                   </div>
                 </div>
               );
@@ -228,27 +235,32 @@ const NewsIntelligence = () => {
       )}
 
       {/* ════════════════════════════════════════
-          HEADLINES ANALYZED (collapsible)
+          HEADLINES ANALYZED — card grid
       ════════════════════════════════════════ */}
-      <div className="ni-section">
-        <button
-          className="ni-headlines-toggle"
-          onClick={() => setHeadlinesOpen(o => !o)}
-        >
-          <span className="ni-toggle-arrow">{headlinesOpen ? '▾' : '▸'}</span>
-          Headlines Analyzed ({headlines.length})
-        </button>
-        {headlinesOpen && (
-          <div className="ni-headlines-list">
-            {headlines.map((h, i) => (
-              <div key={i} className="ni-headline-row">
-                <span className="ni-hl-ticker">{h.ticker}</span>
-                <span className="ni-hl-text">{h.headline}</span>
-              </div>
-            ))}
+      {headlines.length > 0 && (
+        <div className="ni-section">
+          <div className="ni-section-label">HEADLINES ANALYZED ({headlines.length})</div>
+          <div className="ni-headlines-grid">
+            {headlines.map((h, i) => {
+              const hasUrl    = !!h.url;
+              const clickable = hasUrl ? ' ni-hl-card--clickable' : '';
+              return (
+                <div
+                  key={i}
+                  className={`ni-hl-card${clickable}`}
+                  onClick={hasUrl ? () => window.open(h.url, '_blank') : undefined}
+                >
+                  <div className="ni-hl-card-top">
+                    <span className="ni-hl-ticker">{h.ticker}</span>
+                    <span className="ni-hl-ts">{formatArticleTs(h.datetime)}</span>
+                  </div>
+                  <span className="ni-hl-text">{h.headline}</span>
+                </div>
+              );
+            })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
     </div>
   );

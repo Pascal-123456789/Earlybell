@@ -731,6 +731,7 @@ def collect_top_headlines() -> list:
             "summary": (article.get("summary") or "")[:300],
             "ticker": article.get("ticker", ""),
             "datetime": article.get("datetime", 0),
+            "url": article.get("url", ""),
         })
         if len(unique) >= 30:
             break
@@ -749,6 +750,7 @@ async def analyze_headlines_with_ai(headlines: list, signal_data: list = None) -
         "confluences": [],
         "sector_rotation": [],
         "watchlist_flags": [],
+        "raw_ai_response": "",
     }
 
     if not OPENROUTER_API_KEY:
@@ -785,6 +787,8 @@ async def analyze_headlines_with_ai(headlines: list, signal_data: list = None) -
         signal_data_text = "\n".join(signal_lines)
     else:
         signal_data_text = "(no signal data available)"
+
+    print(f"NEWS INTELLIGENCE: signal_data_text[:500] = {signal_data_text[:500]}")
 
     prompt = f"""You are a quantitative financial analyst. You have two data sources:
 
@@ -834,7 +838,7 @@ Confluence types:
 - CATALYST_RISK: upcoming event (earnings, Fed decision) with elevated signals — potential volatility
 - INSIDER_CATALYST: insider purchases aligning with a news catalyst
 
-Only include tickers in confluences if they appear in BOTH the headlines AND the signal data. Maximum 8 confluences. Maximum 5 watchlist flags. Order confluences by signal_score descending."""
+Identify confluences where a ticker has either: (a) news in the headlines AND a signal score above 2.0, OR (b) an interesting divergence between news sentiment and signal direction. On quiet news days aim for 3-8 confluences — it is fine to include tickers where only one data source is present if the signal is noteworthy. Maximum 8 confluences. Maximum 5 watchlist flags. Order confluences by signal_score descending."""
 
     try:
         await asyncio.sleep(0)  # yield to event loop
@@ -869,6 +873,7 @@ Only include tickers in confluences if they appear in BOTH the headlines AND the
         text = text.strip()
 
         parsed = json.loads(text)
+        parsed["raw_ai_response"] = raw_content
         print(
             f"NEWS INTELLIGENCE PARSED: sentiment={parsed.get('overall_sentiment')}, "
             f"{len(parsed.get('confluences', []))} confluences, "
