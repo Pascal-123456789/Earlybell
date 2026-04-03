@@ -1211,10 +1211,13 @@ async def scan_for_alerts():
             response = supabase.table('meme_alerts').upsert(records, on_conflict='ticker').execute()
             print(f"SCAN COMPLETE: {len(records)} tickers written to meme_alerts | {len(no_price)} with NULL price | {len(results) - len(records)} failed to produce a result")
 
-            # Send email alerts for CRITICAL tickers
+            # Send email alerts for CRITICAL tickers (anonymous alert_subscriptions)
             critical_tickers = [r["ticker"] for r in records if r.get("alert_level") == "CRITICAL"]
             if critical_tickers:
                 send_critical_alert_emails(critical_tickers)
+
+            # Send email alerts for authenticated users' personal watchlists
+            await send_watchlist_alerts(records)
 
         except Exception as e:
             print(f"Database save error: {e}")
@@ -1621,6 +1624,79 @@ async def waitlist_premium(req: WaitlistRequest):
     except Exception as e:
         print(f"Waitlist error: {e}")
         return {"error": str(e)}
+
+
+async def send_watchlist_alerts(scan_results: list):
+    """
+    Send email alerts to authenticated users whose watched tickers
+    crossed their alert threshold in this scan.
+    """
+    if not supabase or not SMTP_HOST:
+        return
+
+    try:
+        profiles_response = supabase.table('profiles')\
+            .select('id, alert_email, email, watchlist_tickers, alert_threshold')\
+            .neq('alert_threshold', 0)\
+            .execute()
+        profiles = profiles_response.data or []
+    except Exception as e:
+        print(f"Watchlist alert query error: {e}")
+        return
+
+    # Build score map from this scan
+    score_map = {r['ticker']: r for r in scan_results if 'ticker' in r}
+
+    for profile in profiles:
+        email = profile.get('alert_email') or profile.get('email')
+        if not email:
+            continue
+
+        threshold = profile.get('alert_threshold', 5)
+        if not threshold:
+            continue
+        watched = profile.get('watchlist_tickers') or []
+
+        triggered = []
+        for ticker in watched:
+            result = score_map.get(ticker)
+            if result and result.get('early_warning_score', 0) >= threshold:
+                triggered.append({
+                    'ticker': ticker,
+                    'score':  result['early_warning_score'],
+                    'level':  result.get('alert_level', ''),
+                })
+
+        if not triggered:
+            continue
+
+        ticker_lines = '\n'.join([
+            f"  {t['ticker']}: {t['score']:.1f}/10 ({t['level']})"
+            for t in triggered
+        ])
+        body = (
+            f"EarlyBell Alert — {len(triggered)} of your watched tickers triggered\n\n"
+            f"{ticker_lines}\n\n"
+            f"These tickers crossed your alert threshold of {threshold}/10.\n"
+            f"Check earlybell.app for full signal breakdown.\n\n"
+            f"— EarlyBell\n"
+            f"Unsubscribe: update your alert settings at earlybell.app"
+        )
+
+        msg = MIMEText(body)
+        msg['Subject'] = f"EarlyBell: {', '.join(t['ticker'] for t in triggered)} triggered"
+        msg['From'] = SMTP_FROM
+        msg['To'] = email
+
+        try:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.starttls()
+                if SMTP_USER and SMTP_PASS:
+                    server.login(SMTP_USER, SMTP_PASS)
+                server.send_message(msg)
+            print(f"Watchlist alert sent to {email} for {[t['ticker'] for t in triggered]}")
+        except Exception as e:
+            print(f"Watchlist alert SMTP error for {email}: {e}")
 
 
 def send_critical_alert_emails(critical_tickers: List[str]):

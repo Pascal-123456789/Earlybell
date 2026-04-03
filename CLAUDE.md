@@ -91,7 +91,7 @@ Auth uses `@supabase/supabase-js` directly in the frontend — no backend JWT ve
 - **`frontend/src/AuthContext.jsx`** — React context providing `user`, `session`, `loading`, `signIn`, `signUp`, `signOut` via `useAuth()` hook. Wraps the entire app in `main.jsx`.
 - **`frontend/src/AuthModal.jsx`** / **`AuthModal.css`** — Sign In / Sign Up modal matching EarlyBell design. Two-tab segmented control, form fields, success/error states, forgot password placeholder.
 - **App.jsx sidebar** — Shows "Sign In" button when logged out (opens AuthModal). Shows truncated email + "Sign Out" when logged in. Auth section sits above the status bar.
-- **Scanner blur gate** — Top 3 ticker rows are blurred with a `backdrop-filter: blur(6px)` overlay when the user is not logged in. Clicking the overlay opens AuthModal.
+- **Scanner blur gate** — Top 5 ticker rows are blurred with a `backdrop-filter: blur(6px)` overlay when the user is not logged in. Clicking the overlay opens AuthModal. A 32px login banner above the ticker list also links to AuthModal.
 - **`backend/migrations/017_profiles.sql`** — `profiles` table (UUID PK referencing `auth.users`), with `email`, `watchlist_tickers TEXT[]`, `tier TEXT DEFAULT 'free'`. Row-level security enabled; trigger auto-creates a profile on signup.
 
 ### Required env vars (frontend)
@@ -101,8 +101,16 @@ Must be set in `frontend/.env` (local) and Vercel environment variables (product
 
 ### Stage 1 constraints
 - Backend does **not** verify JWT tokens — auth is frontend-only
-- `profiles` table is created but not yet used by the app
-- Watchlist stays in `localStorage` (not synced to `profiles` yet)
+
+## Authentication (Stage 2 — Authenticated Watchlist & Account)
+
+- **`frontend/src/useWatchlist.js`** — Custom hook managing both anonymous (localStorage) and authenticated (Supabase `profiles.watchlist_tickers`) watchlists. When user logs in, merges localStorage into Supabase (union, capped at `MAX_TICKERS = 3`). On logout, reverts to localStorage without clearing it. Used in Scanner, WatchlistView, and AccountView.
+- **Max 3 tickers per free account** — enforced frontend-only in Stage 2 by `addTicker()` returning `{ error }` when at cap. Scanner shows inline `#f59e0b` message that auto-clears after 3 seconds.
+- **`frontend/src/AccountView.jsx`** / **`AccountView.css`** — "My Account" page (only visible in nav when logged in): account info section (email, member since, FREE PLAN badge, sign out), watched tickers list (with live price/score from `/alerts/cached` and remove button), email alert preferences (threshold segmented control + alert email input, saves to `profiles`).
+- **`backend/migrations/018_profiles_alert_prefs.sql`** — Adds `alert_threshold INT DEFAULT 5` and `alert_email TEXT` columns to `profiles`.
+- **`send_watchlist_alerts(scan_results)`** — Async function in main.py, called after every scan alongside `send_critical_alert_emails`. Queries `profiles` table for users with non-zero `alert_threshold` and non-empty `watchlist_tickers`, sends SMTP email for each ticker that crossed the threshold. Uses `alert_email` if set, falls back to `email`.
+- `profiles.alert_threshold` default is `5`, value `0` means alerts disabled.
+- `profiles.alert_email` overrides auth email for alert delivery if set.
 
 ## Tech Notes
 - No TypeScript — plain JavaScript (JSX)

@@ -1,0 +1,264 @@
+.acct-page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Section label ────────────────────────────────────────────────────────*/
+.acct-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 20px;
+  margin-bottom: 4px;
+}
+
+.acct-section-label:first-child {
+  margin-top: 0;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────────*/
+.acct-card {
+  background: #0d1526;
+  border: 1px solid #1a2740;
+  border-radius: 4px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.acct-card--flush {
+  padding: 0;
+  gap: 0;
+}
+
+/* ── Account info ─────────────────────────────────────────────────────────*/
+.acct-info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.acct-email {
+  font-size: 14px;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.acct-plan-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #475569;
+  background: #111d2e;
+  border: 1px solid #1a2740;
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.acct-since {
+  font-size: 11px;
+  color: #475569;
+  margin-top: -4px;
+}
+
+.acct-signout-btn {
+  height: 32px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px solid #1a2740;
+  border-radius: 3px;
+  color: #64748b;
+  font-size: 12px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.acct-signout-btn:hover {
+  border-color: #243350;
+  color: #94a3b8;
+}
+
+/* ── Watched tickers ──────────────────────────────────────────────────────*/
+.acct-ticker-row {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-bottom: 1px solid #1a2740;
+}
+
+.acct-ticker-row:last-of-type {
+  border-bottom: none;
+}
+
+.acct-ticker-sym {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  min-width: 52px;
+}
+
+.acct-ticker-price {
+  font-size: 13px;
+  color: #94a3b8;
+  min-width: 64px;
+}
+
+.acct-ticker-pct {
+  font-size: 12px;
+  min-width: 52px;
+}
+
+.acct-pct-up   { color: #22c55e; }
+.acct-pct-dn   { color: #ef4444; }
+.acct-pct-flat { color: #475569; }
+
+.acct-ticker-score {
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.acct-ticker-loading {
+  font-size: 12px;
+  color: #334155;
+  margin-left: auto;
+}
+
+.acct-ticker-remove {
+  background: none;
+  border: none;
+  color: #334155;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.acct-ticker-remove:hover {
+  color: #ef4444;
+}
+
+.acct-empty {
+  padding: 16px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.acct-add-hint {
+  padding: 10px 14px;
+  font-size: 11px;
+  color: #334155;
+  border-top: 1px solid #1a2740;
+}
+
+/* ── Email alerts ─────────────────────────────────────────────────────────*/
+.acct-alert-desc {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.acct-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.acct-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.acct-threshold-pills {
+  display: flex;
+  background: #060d18;
+  border: 1px solid #1a2740;
+  border-radius: 3px;
+  padding: 2px;
+  gap: 2px;
+  align-self: flex-start;
+}
+
+.acct-threshold-pill {
+  height: 28px;
+  padding: 0 12px;
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  color: #334155;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.acct-threshold-pill--active {
+  background: #111d2e;
+  color: #e2e8f0;
+}
+
+.acct-threshold-pill:not(.acct-threshold-pill--active):hover {
+  color: #64748b;
+}
+
+.acct-input {
+  height: 36px;
+  padding: 0 12px;
+  background: #060d18;
+  border: 1px solid #1a2740;
+  border-radius: 3px;
+  color: #e2e8f0;
+  font-size: 13px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.acct-input::placeholder { color: #334155; }
+.acct-input:focus { border-color: #243350; }
+
+.acct-save-btn {
+  height: 36px;
+  width: 100%;
+  background: #22c55e;
+  color: #000;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+
+.acct-save-btn:hover:not(:disabled) { background: #16a34a; }
+.acct-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.acct-save-success {
+  margin: 0;
+  font-size: 12px;
+  color: #22c55e;
+}
+
+.acct-save-error {
+  margin: 0;
+  font-size: 12px;
+  color: #ef4444;
+}

@@ -3,6 +3,7 @@ import { FiLock } from 'react-icons/fi';
 import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts';
 import TICKER_DATA from './tickerData';
 import { useAuth } from './AuthContext';
+import { useWatchlist } from './useWatchlist';
 import './Scanner.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -175,6 +176,7 @@ const EmptyState = () => (
 // ── Main component ─────────────────────────────────────────────────────────
 const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
   const { user } = useAuth();
+  const { watchlist, addTicker, removeTicker, isWatched } = useWatchlist();
   const [tickers, setTickers]         = useState([]);
   const [loading, setLoading]         = useState(true);
   const [sortBy, setSortBy]           = useState('alert_score');
@@ -183,10 +185,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [historyData, setHistoryData]       = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [watchlist, setWatchlist] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('foega_watchlist')) || []; }
-    catch { return []; }
-  });
+  const [limitMsg, setLimitMsg]             = useState(null); // inline limit message
   const [isMobile, setIsMobile]               = useState(window.innerWidth < 768);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [tickerConfig, setTickerConfig] = useState(null); // {core, social_trending, price_movers}
@@ -274,13 +273,17 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
     setHistoryLoading(false);
   }, []);
 
-  const toggleWatch = useCallback((ticker) => {
-    setWatchlist(prev => {
-      const next = prev.includes(ticker) ? prev.filter(t => t !== ticker) : [...prev, ticker];
-      localStorage.setItem('foega_watchlist', JSON.stringify(next));
-      return next;
-    });
-  }, []);
+  const handleToggleWatch = useCallback(async (ticker) => {
+    if (isWatched(ticker)) {
+      await removeTicker(ticker);
+    } else {
+      const result = await addTicker(ticker);
+      if (result?.error) {
+        setLimitMsg(result.error);
+        setTimeout(() => setLimitMsg(null), 3000);
+      }
+    }
+  }, [isWatched, addTicker, removeTicker]);
 
   // ── Sort + filter ──
   // Strip zero-data stale rows (belt-and-suspenders against Supabase ghost rows)
@@ -367,7 +370,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
     const levelColor = LEVEL_COLOR[level] || '#334155';
     const pct        = d.price_change_pct || 0;
     const direction  = getDirectionSignal(d);
-    const isWatched  = watchlist.includes(d.ticker);
+    const isWatchedTicker = isWatched(d.ticker);
     const tdInfo     = TICKER_DATA[d.ticker];
 
     const odds = polymarketEvents.find(e => e.affected_tickers?.includes(d.ticker));
@@ -561,11 +564,14 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
         {/* Section 7 — Actions */}
         <div className="sc-actions">
           <button
-            className={`sc-watch-btn${isWatched ? ' sc-watch-btn--active' : ''}`}
-            onClick={() => toggleWatch(d.ticker)}
+            className={`sc-watch-btn${isWatchedTicker ? ' sc-watch-btn--active' : ''}`}
+            onClick={() => handleToggleWatch(d.ticker)}
           >
-            {isWatched ? '✓ Watching' : '+ Add to Watchlist'}
+            {isWatchedTicker ? '✓ Watching' : '+ Add to Watchlist'}
           </button>
+          {limitMsg && (
+            <span className="sc-limit-msg">{limitMsg}</span>
+          )}
         </div>
 
       </div>
@@ -622,6 +628,15 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
           </button>
         </div>
 
+        {/* Login banner (logged out only) */}
+        {!user && (
+          <div className="sc-login-banner">
+            <span className="sc-login-banner-text">Showing limited data —</span>
+            <button className="sc-login-banner-link" onClick={onOpenAuth}>Sign in free</button>
+            <span className="sc-login-banner-text">to unlock all signals</span>
+          </div>
+        )}
+
         {/* Ticker list */}
         <div className="sc-ticker-list" ref={listRef} role="listbox" aria-label="Tickers">
           {sorted.length === 0 ? (
@@ -636,7 +651,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
 
             const renderRow = (item, badge) => {
               const rowPos = globalRowIdx++;
-              const blurred = !user && rowPos < 3;
+              const blurred = !user && rowPos < 5;
               return (
                 <div key={item.ticker} style={{ position: 'relative' }}>
                   <TickerRow
@@ -650,7 +665,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
                   {blurred && (
                     <div className="sc-blur-gate" onClick={onOpenAuth}>
                       <FiLock size={11} />
-                      <span>Sign in to view top signals</span>
+                      <span>Sign in free to see top signals</span>
                     </div>
                   )}
                 </div>

@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useWatchlist } from './useWatchlist';
 import './MarketScanner.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-const WATCHLIST_KEY = 'foega_watchlist';
 
 const WatchlistView = () => {
+  const { watchlist, removeTicker } = useWatchlist();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [watchlist, setWatchlist] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(WATCHLIST_KEY)) || [];
-    } catch { return []; }
-  });
+  const [email, setEmail] = useState('');
+  const [subscribeStatus, setSubscribeStatus] = useState(null);
 
   useEffect(() => {
     const fetchAlerts = async () => {
@@ -29,15 +27,6 @@ const WatchlistView = () => {
     fetchAlerts();
   }, []);
 
-  const removeFromWatchlist = (ticker) => {
-    const updated = watchlist.filter(t => t !== ticker);
-    setWatchlist(updated);
-    localStorage.setItem(WATCHLIST_KEY, JSON.stringify(updated));
-  };
-
-  const [email, setEmail] = useState('');
-  const [subscribeStatus, setSubscribeStatus] = useState(null);
-
   const handleSubscribe = async () => {
     if (!email || watchlist.length === 0) return;
     setSubscribeStatus('loading');
@@ -48,11 +37,7 @@ const WatchlistView = () => {
         body: JSON.stringify({ email, tickers: watchlist }),
       });
       const data = await res.json();
-      if (data.error) {
-        setSubscribeStatus('error');
-      } else {
-        setSubscribeStatus('success');
-      }
+      setSubscribeStatus(data.error ? 'error' : 'success');
     } catch {
       setSubscribeStatus('error');
     }
@@ -71,11 +56,6 @@ const WatchlistView = () => {
     if (change < -2) return 'price-down-strong';
     if (change < 0) return 'price-down';
     return 'price-neutral';
-  };
-
-  const getEmoji = (level) => {
-    const emojis = { 'CRITICAL': '🚨', 'HIGH': '⚠️', 'MEDIUM': '⚡' };
-    return emojis[level] || '📊';
   };
 
   return (
@@ -120,9 +100,7 @@ const WatchlistView = () => {
                 className={getAlertClass(alert.alert_level)}
               >
                 <div className="alert-header">
-                  <h2 className="alert-ticker">
-                    {getEmoji(alert.alert_level)} {alert.ticker}
-                  </h2>
+                  <h2 className="alert-ticker">{alert.ticker}</h2>
                   <span className="alert-score">
                     {(alert.alert_score || alert.early_warning_score || 0).toFixed(1)}
                   </span>
@@ -168,7 +146,7 @@ const WatchlistView = () => {
 
                 <button
                   className="watch-btn watched"
-                  onClick={(e) => { e.stopPropagation(); removeFromWatchlist(alert.ticker); }}
+                  onClick={(e) => { e.stopPropagation(); removeTicker(alert.ticker); }}
                 >
                   Remove
                 </button>

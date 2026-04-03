@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { FiActivity, FiRadio, FiClock, FiBookmark, FiInfo, FiLock, FiMail, FiMenu } from 'react-icons/fi';
+import { FiActivity, FiRadio, FiClock, FiBookmark, FiInfo, FiLock, FiMail, FiMenu, FiUser } from 'react-icons/fi';
 import Scanner from './Scanner';
 import MarketScanner from './MarketScanner';
 import PredictedMovers from './PredictedMovers';
@@ -10,6 +10,7 @@ import AlertHistoryView from './AlertHistoryView';
 import NewsIntelligence from './NewsIntelligence';
 import PremiumAccess from './PremiumAccess';
 import AuthModal from './AuthModal';
+import AccountView from './AccountView';
 import { useAuth } from './AuthContext';
 
 // --- COMPONENT: HelpModal ---
@@ -246,6 +247,8 @@ export default function App() {
                 return <AlertHistoryView />;
             case 'watchlist':
                 return <WatchlistView />;
+            case 'account':
+                return <AccountView />;
             case 'about':
                 return aboutContent;
             case 'premium':
@@ -293,6 +296,12 @@ export default function App() {
                                  onClick={() => setCurrentView('watchlist')}>
                                 <FiBookmark /><span>Watchlist</span>
                             </div>
+                            {user && (
+                                <div className={`nav-item ${currentView === 'account' ? 'active' : ''}`}
+                                     onClick={() => setCurrentView('account')}>
+                                    <FiUser /><span>My Account</span>
+                                </div>
+                            )}
                         </div>
 
                         <hr className="nav-group-divider" />
