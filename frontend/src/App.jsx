@@ -9,6 +9,8 @@ import HeatmapView from './HeatmapView';
 import AlertHistoryView from './AlertHistoryView';
 import NewsIntelligence from './NewsIntelligence';
 import PremiumAccess from './PremiumAccess';
+import AuthModal from './AuthModal';
+import { useAuth } from './AuthContext';
 
 // --- COMPONENT: HelpModal ---
 const HelpModal = ({ onClose }) => (
@@ -143,6 +145,7 @@ const TickerDetailModal = ({ modalData, modalLoading, modalError, setModalData, 
 
 // --- MAIN APP COMPONENT ---
 export default function App() {
+    const { user, signOut } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
     const isFirstVisit = !localStorage.getItem('earlybell_visited');
     const [currentView, setCurrentView] = useState(isFirstVisit ? 'welcome' : 'scanner');
@@ -151,6 +154,7 @@ export default function App() {
     const [modalError, setModalError] = useState(null);
     const [polymarketEvents, setPolymarketEvents] = useState([]);
     const [showHelp, setShowHelp] = useState(false);
+    const [showAuthModal, setShowAuthModal] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
     // Auto-close sidebar on resize to mobile
@@ -235,7 +239,7 @@ export default function App() {
                     </>
                 );
             case 'scanner':
-                return <Scanner polymarketEvents={polymarketEvents} onTickerClick={fetchTickerDetails} />;
+                return <Scanner polymarketEvents={polymarketEvents} onTickerClick={fetchTickerDetails} onOpenAuth={() => setShowAuthModal(true)} />;
             case 'news':
                 return <NewsIntelligence />;
             case 'history':
@@ -310,6 +314,24 @@ export default function App() {
                         </div>
                     </nav>
 
+                    {/* Auth section */}
+                    <div className="sb-auth">
+                        {user ? (
+                            <>
+                                <span className="sb-auth-email">
+                                    {user.email.length > 20 ? user.email.slice(0, 20) + '…' : user.email}
+                                </span>
+                                <button className="sb-auth-signout" onClick={signOut}>
+                                    Sign Out
+                                </button>
+                            </>
+                        ) : (
+                            <button className="sb-auth-signin" onClick={() => setShowAuthModal(true)}>
+                                Sign In
+                            </button>
+                        )}
+                    </div>
+
                     {/* Status bar */}
                     <div className="sb-status">
                         <span className="sb-status-dot" />
@@ -345,6 +367,8 @@ export default function App() {
             </button>
 
             {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+
+            {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
 
             <div className="disclaimer-footer">
                 Not financial advice. Use as one data point among many. Always do your own research.

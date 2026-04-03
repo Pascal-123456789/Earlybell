@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { FiLock } from 'react-icons/fi';
 import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts';
 import TICKER_DATA from './tickerData';
+import { useAuth } from './AuthContext';
 import './Scanner.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -171,7 +173,8 @@ const EmptyState = () => (
 );
 
 // ── Main component ─────────────────────────────────────────────────────────
-const Scanner = ({ polymarketEvents = [], onTickerClick }) => {
+const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
+  const { user } = useAuth();
   const [tickers, setTickers]         = useState([]);
   const [loading, setLoading]         = useState(true);
   const [sortBy, setSortBy]           = useState('alert_score');
@@ -628,17 +631,31 @@ const Scanner = ({ polymarketEvents = [], onTickerClick }) => {
             const hasSections = tickerConfig &&
               (tickerConfig.social.size > 0 || tickerConfig.movers.size > 0);
 
-            const renderRow = (item, badge) => (
-              <TickerRow
-                key={item.ticker}
-                data={item}
-                selected={selectedTicker === item.ticker}
-                onClick={() => handleSelect(item)}
-                rowRef={el => { rowRefs.current[item.ticker] = el; }}
-                sortBy={sortBy}
-                badge={badge}
-              />
-            );
+            // Global row counter for blur gate (top 3 across all sections)
+            let globalRowIdx = 0;
+
+            const renderRow = (item, badge) => {
+              const rowPos = globalRowIdx++;
+              const blurred = !user && rowPos < 3;
+              return (
+                <div key={item.ticker} style={{ position: 'relative' }}>
+                  <TickerRow
+                    data={item}
+                    selected={selectedTicker === item.ticker}
+                    onClick={() => !blurred && handleSelect(item)}
+                    rowRef={el => { rowRefs.current[item.ticker] = el; }}
+                    sortBy={sortBy}
+                    badge={badge}
+                  />
+                  {blurred && (
+                    <div className="sc-blur-gate" onClick={onOpenAuth}>
+                      <FiLock size={11} />
+                      <span>Sign in to view top signals</span>
+                    </div>
+                  )}
+                </div>
+              );
+            };
 
             if (!hasSections) {
               return sorted.map(item => renderRow(item, null));

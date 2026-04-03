@@ -83,6 +83,27 @@ State management is local React hooks only (useState/useEffect). No router libra
 ### Styling
 Dark navy theme. Page background: `#0f172a`, card backgrounds: `#1e293b`, elevated/hover surfaces: `#334155`, borders: `#334155`. Primary accent: `#22c55e` (green), secondary accent: `#ff9900` (amber). CSS variables defined in `App.css :root`. CSS files are colocated with their components. Sidebar collapses from 250px to 70px.
 
+## Authentication (Stage 1 — Frontend Only)
+
+Auth uses `@supabase/supabase-js` directly in the frontend — no backend JWT verification yet.
+
+- **`frontend/src/supabaseClient.js`** — Creates and exports the Supabase client using `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+- **`frontend/src/AuthContext.jsx`** — React context providing `user`, `session`, `loading`, `signIn`, `signUp`, `signOut` via `useAuth()` hook. Wraps the entire app in `main.jsx`.
+- **`frontend/src/AuthModal.jsx`** / **`AuthModal.css`** — Sign In / Sign Up modal matching EarlyBell design. Two-tab segmented control, form fields, success/error states, forgot password placeholder.
+- **App.jsx sidebar** — Shows "Sign In" button when logged out (opens AuthModal). Shows truncated email + "Sign Out" when logged in. Auth section sits above the status bar.
+- **Scanner blur gate** — Top 3 ticker rows are blurred with a `backdrop-filter: blur(6px)` overlay when the user is not logged in. Clicking the overlay opens AuthModal.
+- **`backend/migrations/017_profiles.sql`** — `profiles` table (UUID PK referencing `auth.users`), with `email`, `watchlist_tickers TEXT[]`, `tier TEXT DEFAULT 'free'`. Row-level security enabled; trigger auto-creates a profile on signup.
+
+### Required env vars (frontend)
+Must be set in `frontend/.env` (local) and Vercel environment variables (production):
+- `VITE_SUPABASE_URL` — same URL as `SUPABASE_URL` in the backend `.env`
+- `VITE_SUPABASE_ANON_KEY` — same key as `SUPABASE_KEY` in the backend `.env`
+
+### Stage 1 constraints
+- Backend does **not** verify JWT tokens — auth is frontend-only
+- `profiles` table is created but not yet used by the app
+- Watchlist stays in `localStorage` (not synced to `profiles` yet)
+
 ## Tech Notes
 - No TypeScript — plain JavaScript (JSX)
 - No test suite or testing framework configured

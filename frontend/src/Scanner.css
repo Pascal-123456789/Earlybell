@@ -301,6 +301,25 @@
   color: #38bdf8;
 }
 
+/* ── Blur gate overlay (login required) ──────────────────────────────────*/
+.sc-blur-gate {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(6px);
+  background: rgba(6, 13, 24, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.sc-blur-gate:hover {
+  color: #94a3b8;
+}
+
 /* ── Divider ──────────────────────────────────────────────────────────────*/
 .sc-divider {
   width: 1px;
