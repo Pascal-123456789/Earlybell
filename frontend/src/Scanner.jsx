@@ -36,6 +36,22 @@ const SORT_LABELS = {
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+
+// Derive alert level from score — never trust the stored string alone
+const scoreToLevel = (score) => {
+  if (score >= 7) return 'CRITICAL';
+  if (score >= 5) return 'HIGH';
+  if (score >= 3) return 'MEDIUM';
+  return 'LOW';
+};
+
+// Stable sort: equal-score items keep their original relative order
+const stableSort = (arr, compareFn) =>
+  arr
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => compareFn(a.item, b.item) || a.index - b.index)
+    .map(({ item }) => item);
+
 function getDirectionSignal(alert) {
   let score = 0;
   const cpRatio = alert.options_call_put_ratio || 0;
@@ -78,10 +94,11 @@ function fmt(value, decimals = 2, showZero = false) {
 // ── Left panel: single ticker row ─────────────────────────────────────────
 const TickerRow = React.memo(({ data, selected, onClick, rowRef, sortBy, badge }) => {
   const score    = data.alert_score || data.early_warning_score || 0;
+  const level    = scoreToLevel(score);
   const pct      = data.price_change_pct || 0;
   const name     = TICKER_DATA[data.ticker]?.name || '';
   const barW     = Math.min(score / 10, 1) * 40;
-  const barColor = data.alert_level === 'LOW' ? '#1a2740' : LEVEL_COLOR[data.alert_level];
+  const barColor = level === 'LOW' ? '#1a2740' : LEVEL_COLOR[level];
   const showHype = sortBy === 'hype_score';
 
   return (
@@ -96,7 +113,7 @@ const TickerRow = React.memo(({ data, selected, onClick, rowRef, sortBy, badge }
     >
       <div
         className="sc-row-bar"
-        style={{ background: data.alert_level === 'LOW' ? 'transparent' : LEVEL_COLOR[data.alert_level] }}
+        style={{ background: level === 'LOW' ? 'transparent' : LEVEL_COLOR[level] }}
       />
       <span className="sc-row-ticker">{data.ticker}</span>
       <span className="sc-row-name">
@@ -267,15 +284,20 @@ const Scanner = ({ polymarketEvents = [], onTickerClick }) => {
   const nonZero = tickers.filter(
     t => !(t.alert_score === 0 && t.price_change_pct === 0 && t.current_price === 0)
   );
-  const filtered = showLow ? nonZero : nonZero.filter(t => t.alert_level !== 'LOW');
-  const sorted = [...filtered].sort((a, b) => {
+  const filtered = showLow
+    ? nonZero
+    : nonZero.filter(t => scoreToLevel(t.alert_score || t.early_warning_score || 0) !== 'LOW');
+
+  const makeSortFn = () => (a, b) => {
     switch (sortBy) {
-      case 'mover_score':   return (b.mover_score || 0) - (a.mover_score || 0);
-      case 'price_change':  return Math.abs(b.price_change_pct || 0) - Math.abs(a.price_change_pct || 0);
-      case 'hype_score':    return (b.hype_score || 0) - (a.hype_score || 0);
-      default:              return (b.alert_score || b.early_warning_score || 0) - (a.alert_score || a.early_warning_score || 0);
+      case 'mover_score':  return (b.mover_score || 0) - (a.mover_score || 0);
+      case 'price_change': return Math.abs(b.price_change_pct || 0) - Math.abs(a.price_change_pct || 0);
+      case 'hype_score':   return (b.hype_score || 0) - (a.hype_score || 0);
+      default:             return (b.alert_score || b.early_warning_score || 0) - (a.alert_score || a.early_warning_score || 0);
     }
-  });
+  };
+
+  const sorted = stableSort(filtered, makeSortFn());
 
   const selectedData = tickers.find(t => t.ticker === selectedTicker) || null;
 
@@ -303,12 +325,12 @@ const Scanner = ({ polymarketEvents = [], onTickerClick }) => {
     return () => window.removeEventListener('keydown', handler);
   }, [sorted, selectedTicker, handleSelect]);
 
-  // ── Alert counts ──
+  // ── Alert counts (derived from score, not stored string) ──
   const counts = {
-    CRITICAL: tickers.filter(t => t.alert_level === 'CRITICAL').length,
-    HIGH:     tickers.filter(t => t.alert_level === 'HIGH').length,
-    MEDIUM:   tickers.filter(t => t.alert_level === 'MEDIUM').length,
-    LOW:      tickers.filter(t => t.alert_level === 'LOW').length,
+    CRITICAL: tickers.filter(t => scoreToLevel(t.alert_score || t.early_warning_score || 0) === 'CRITICAL').length,
+    HIGH:     tickers.filter(t => scoreToLevel(t.alert_score || t.early_warning_score || 0) === 'HIGH').length,
+    MEDIUM:   tickers.filter(t => scoreToLevel(t.alert_score || t.early_warning_score || 0) === 'MEDIUM').length,
+    LOW:      tickers.filter(t => scoreToLevel(t.alert_score || t.early_warning_score || 0) === 'LOW').length,
   };
 
   // ── Loading state ──
@@ -337,8 +359,9 @@ const Scanner = ({ polymarketEvents = [], onTickerClick }) => {
   const renderDetail = () => {
     if (!selectedData) return <EmptyState />;
     const d = selectedData;
-    const levelColor = LEVEL_COLOR[d.alert_level] || '#334155';
     const score      = d.alert_score || d.early_warning_score || 0;
+    const level      = scoreToLevel(score);
+    const levelColor = LEVEL_COLOR[level] || '#334155';
     const pct        = d.price_change_pct || 0;
     const direction  = getDirectionSignal(d);
     const isWatched  = watchlist.includes(d.ticker);
@@ -375,7 +398,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick }) => {
               {score.toFixed(1)}
             </span>
             <span className="sc-detail-level-text" style={{ color: levelColor }}>
-              {d.alert_level}
+              {level}
             </span>
           </div>
         </div>
@@ -631,9 +654,9 @@ const Scanner = ({ polymarketEvents = [], onTickerClick }) => {
               }
             };
 
-            const coreRows   = [...sorted.filter(t => CORE_TICKERS.has(t.ticker))].sort(sortFn);
-            const socialRows = [...sorted.filter(t => tickerConfig.social.has(t.ticker))].sort(sortFn);
-            const moverRows  = [...sorted.filter(t => tickerConfig.movers.has(t.ticker))].sort(sortFn);
+            const coreRows   = stableSort(sorted.filter(t => CORE_TICKERS.has(t.ticker)), sortFn);
+            const socialRows = stableSort(sorted.filter(t => tickerConfig.social.has(t.ticker)), sortFn);
+            const moverRows  = stableSort(sorted.filter(t => tickerConfig.movers.has(t.ticker)), sortFn);
 
             return (
               <>

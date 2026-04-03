@@ -254,6 +254,29 @@ async def scheduled_update_loop():
         await asyncio.sleep(3600)
         
 
+# Tickers acceptable from ApeWisdom (union of all curated lists + extended)
+EXTENDED_UNIVERSE = list(set(CORE_TICKERS + MOVER_UNIVERSE + [
+    "MSTR", "RIVN", "LCID", "NIO", "XPEV", "LI",
+    "RKLB", "ASTS", "LUNR", "ACHR", "JOBY",
+    "AMC", "GME",
+    "TLRY", "SNDL", "CGC", "ACB",
+    "DKNG", "PENN", "MGM", "WYNN",
+    "SOFI", "AFRM", "UPST", "LC",
+    "PTON", "NKLA",
+]))
+KNOWN_TICKERS_SET = set(EXTENDED_UNIVERSE)
+
+# ---------------------------
+# HELPERS
+# ---------------------------
+
+def score_to_level(score: float) -> str:
+    if score >= 7.0: return "CRITICAL"
+    if score >= 5.0: return "HIGH"
+    if score >= 3.0: return "MEDIUM"
+    return "LOW"
+
+
 # ---------------------------
 # DYNAMIC TICKER SELECTION
 # ---------------------------
@@ -319,8 +342,12 @@ async def get_dynamic_tickers() -> tuple:
         exclude = set(CORE_TICKERS)
         for item in ape_data:
             t = (item.get("ticker") or "").upper().strip()
-            if (t and t not in exclude and t not in EXCLUDED_ETFS
-                    and "-" not in t and 2 <= len(t) <= 5):
+            if (t
+                    and t.isalpha()
+                    and 2 <= len(t) <= 5
+                    and t not in exclude
+                    and t not in EXCLUDED_ETFS
+                    and t in KNOWN_TICKERS_SET):
                 social_tickers.append(t)
                 exclude.add(t)
                 if len(social_tickers) >= SOCIAL_COUNT:
@@ -1098,17 +1125,9 @@ async def scan_for_alerts():
                             "total_buy_volume_usd": 0, "unusual_insider_buying": False}
         item["insider_signal"] = insider_data
 
-        # Insider is supplementary only — does not affect the core score or alert level.
-        # Core score is already final from meme_detector: 40% options + 35% volume + 25% social.
-        score = item["early_warning_score"]
-        if score >= 7.0:
-            item["alert_level"] = "CRITICAL"
-        elif score >= 5.0:
-            item["alert_level"] = "HIGH"
-        elif score >= 3.0:
-            item["alert_level"] = "MEDIUM"
-        else:
-            item["alert_level"] = "LOW"
+        # Recalculate alert_level fresh from current score every scan.
+        # Never carry over a stale level from the database.
+        item["alert_level"] = score_to_level(item["early_warning_score"])
 
         await asyncio.sleep(0.5)
 
