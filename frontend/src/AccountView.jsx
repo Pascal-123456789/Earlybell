@@ -1,7 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FiX } from 'react-icons/fi';
 import { useAuth } from './AuthContext';
 import { useWatchlist } from './useWatchlist';
+
+const FINNHUB_KEY = import.meta.env.VITE_FINNHUB_API_KEY
+
+const searchTickers = async (query) => {
+  if (query.length < 1) return []
+  const res = await fetch(
+    `https://finnhub.io/api/v1/search?q=${encodeURIComponent(query)}&token=${FINNHUB_KEY}`
+  )
+  const data = await res.json()
+  return (data.result || [])
+    .filter(r => r.type === 'Common Stock' && !r.symbol.includes('.'))
+    .slice(0, 6)
+}
 import { supabase } from './supabaseClient';
 import './AccountView.css';
 
@@ -23,13 +36,22 @@ const scoreToLevel = (score) => {
 
 export default function AccountView() {
   const { user, signOut } = useAuth();
-  const { watchlist, removeTicker, maxTickers } = useWatchlist();
+  const { watchlist, addTicker, removeTicker, maxTickers } = useWatchlist();
 
   const [scanData, setScanData]         = useState({});
   const [scanLoading, setScanLoading]   = useState(true);
   const [threshold, setThreshold]       = useState(5);
   const [alertEmail, setAlertEmail]     = useState('');
   const [saveStatus, setSaveStatus]     = useState(null); // null | 'saving' | 'saved' | 'error'
+
+  // Ticker search state
+  const [query, setQuery]           = useState('');
+  const [results, setResults]       = useState([]);
+  const [searching, setSearching]   = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [limitMsg, setLimitMsg]     = useState(null);
+  const debounceRef  = useRef(null);
+  const searchBoxRef = useRef(null);
 
   // Load scan data for watched tickers
   useEffect(() => {
@@ -65,6 +87,58 @@ export default function AccountView() {
         }
       });
   }, [user]);
+
+  // Debounced Finnhub search
+  const handleQueryChange = useCallback((e) => {
+    const q = e.target.value;
+    setQuery(q);
+    setDropdownOpen(true);
+    clearTimeout(debounceRef.current);
+    if (!q.trim()) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const hits = await searchTickers(q.trim());
+        setResults(hits);
+      } catch {
+        setResults([]);
+      }
+      setSearching(false);
+    }, 300);
+  }, []);
+
+  // Close dropdown on outside click or Escape
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, []);
+
+  const handlePickTicker = async (symbol) => {
+    const result = await addTicker(symbol);
+    if (result?.error) {
+      setLimitMsg(result.error);
+      setTimeout(() => setLimitMsg(null), 3000);
+    }
+    setQuery('');
+    setResults([]);
+    setDropdownOpen(false);
+  };
 
   const saveAlertPrefs = async () => {
     if (!user) return;
@@ -117,7 +191,7 @@ export default function AccountView() {
       <div className="acct-card acct-card--flush">
         {watchlist.length === 0 ? (
           <div className="acct-empty">
-            No tickers watched. Add up to {maxTickers} from the Scanner.
+            No tickers watched. Search below to add up to {maxTickers}.
           </div>
         ) : (
           watchlist.map(ticker => {
@@ -157,8 +231,37 @@ export default function AccountView() {
           })
         )}
         {watchlist.length < maxTickers && (
-          <div className="acct-add-hint">
-            Add tickers from the Scanner page
+          <div className="acct-search-wrap" ref={searchBoxRef}>
+            <input
+              className="acct-input acct-search-input"
+              type="text"
+              value={query}
+              onChange={handleQueryChange}
+              onFocus={() => query.trim() && setDropdownOpen(true)}
+              placeholder="Search any ticker e.g. AAPL, TSLA..."
+              autoComplete="off"
+            />
+            {dropdownOpen && query.trim() && (
+              <div className="acct-dropdown">
+                {searching ? (
+                  <div className="acct-dropdown-msg">Searching…</div>
+                ) : results.length === 0 ? (
+                  <div className="acct-dropdown-msg">No results for "{query}"</div>
+                ) : (
+                  results.map(r => (
+                    <button
+                      key={r.symbol}
+                      className="acct-dropdown-row"
+                      onClick={() => handlePickTicker(r.symbol)}
+                    >
+                      <span className="acct-dropdown-sym">{r.symbol}</span>
+                      <span className="acct-dropdown-desc">{r.description}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+            {limitMsg && <p className="acct-limit-msg">{limitMsg}</p>}
           </div>
         )}
       </div>
