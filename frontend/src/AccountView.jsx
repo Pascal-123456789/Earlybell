@@ -5,12 +5,27 @@ import { useWatchlist } from './useWatchlist';
 
 const FINNHUB_KEY = import.meta.env.VITE_FINNHUB_API_KEY
 
+if (!FINNHUB_KEY) {
+  console.warn('VITE_FINNHUB_API_KEY is not set — ticker search will not work')
+}
+
 const searchTickers = async (query) => {
   if (query.length < 1) return []
-  const res = await fetch(
-    `https://finnhub.io/api/v1/search?q=${encodeURIComponent(query)}&token=${FINNHUB_KEY}`
-  )
-  const data = await res.json()
+  const url = `https://finnhub.io/api/v1/search?q=${encodeURIComponent(query)}&token=${FINNHUB_KEY}`
+  let res, data
+  try {
+    res = await fetch(url)
+    console.log('[Finnhub search] status:', res.status, res.statusText)
+    data = await res.json()
+    console.log('[Finnhub search] raw response:', data)
+  } catch (err) {
+    console.error('[Finnhub search] network error:', err)
+    return []
+  }
+  if (!res.ok) {
+    console.error('[Finnhub search] API error — check VITE_FINNHUB_API_KEY. status:', res.status)
+    return []
+  }
   return (data.result || [])
     .filter(r => r.type === 'Common Stock' && !r.symbol.includes('.'))
     .slice(0, 6)
