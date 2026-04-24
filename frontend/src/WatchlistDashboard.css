@@ -1,4 +1,4 @@
-/* WatchlistDashboard.css — premium terminal-panel layout */
+/* WatchlistDashboard.css */
 
 /* ── Page shell ─────────────────────────────────────────────────────────────*/
 .wl-page {
@@ -8,6 +8,8 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  background: #070d16;
+  min-height: calc(100vh - 40px);
 }
 
 /* ── Page header ────────────────────────────────────────────────────────────*/
@@ -17,7 +19,6 @@
   justify-content: space-between;
   padding-bottom: 14px;
   border-bottom: 1px solid #1a2740;
-  flex-shrink: 0;
 }
 
 .wl-page-title {
@@ -36,12 +37,12 @@
 
 .wl-refreshed-ts {
   font-size: 11px;
-  color: #1a2740;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: #1e3a5f;
 }
 
-.wl-scanning-label {
+.wl-scanning-lbl {
   font-size: 11px;
   color: #3b82f6;
   letter-spacing: 0.06em;
@@ -58,7 +59,7 @@
   border: 1px solid #1a2740;
   border-radius: 3px;
   color: #334155;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -73,46 +74,48 @@
 
 /* ── Cards ──────────────────────────────────────────────────────────────────*/
 .wl-card {
-  background: #0a1220;
+  background: #0a1628;
   border: 1px solid #1a2740;
   border-radius: 4px;
   padding: 20px;
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  transition: all 0.2s ease;
 }
 
 .wl-card--featured {
   border-color: #243350;
 }
 
-.wl-badge-top {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #3b82f6;
+.wl-card--secondary {
+  cursor: pointer;
+}
+
+.wl-secondary-wrap:hover .wl-card--secondary {
+  border-color: #2d4a6b;
 }
 
 /* ── Card header ────────────────────────────────────────────────────────────*/
-.wl-card-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.wl-card-id {
-  flex: 1;
+.wl-card-hd {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
-.wl-card-sym {
+.wl-hd-row1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wl-hd-sym-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wl-sym {
   font-size: 22px;
   font-weight: 700;
   color: #e2e8f0;
@@ -120,20 +123,30 @@
   line-height: 1;
 }
 
-.wl-card-name {
-  font-size: 11px;
-  color: #475569;
+.wl-sym--sm {
+  font-size: 18px;
 }
 
-.wl-card-prices {
+.wl-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3b82f6;
+  background: #0f1f3d;
+  border: 1px solid #1a3a6b;
+  border-radius: 3px;
+  padding: 2px 6px;
+  line-height: 1.4;
+}
+
+.wl-hd-price-wrap {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  padding-right: 20px; /* space for remove button */
+  align-items: center;
+  gap: 8px;
 }
 
-.wl-card-price {
+.wl-price {
   font-size: 20px;
   font-weight: 600;
   color: #e2e8f0;
@@ -141,19 +154,11 @@
   line-height: 1;
 }
 
-.wl-card-pct {
-  font-size: 12px;
-  font-weight: 500;
+.wl-price--sm {
+  font-size: 16px;
 }
 
-.wl-pct-up   { color: #22c55e; }
-.wl-pct-dn   { color: #ef4444; }
-.wl-pct-flat { color: #475569; }
-
-.wl-remove {
-  position: absolute;
-  top: 14px;
-  right: 36px;
+.wl-remove-btn {
   background: none;
   border: none;
   color: #1a2740;
@@ -162,127 +167,126 @@
   display: flex;
   align-items: center;
   transition: color 0.15s;
+  flex-shrink: 0;
 }
 
-.wl-card--featured .wl-remove { right: 80px; }
+.wl-remove-btn:hover { color: #ef4444; }
 
-.wl-remove:hover { color: #ef4444; }
-
-/* ── Score bar ──────────────────────────────────────────────────────────────*/
-.wl-score-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.wl-score-top {
+.wl-hd-row2 {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+}
+
+.wl-company {
+  font-size: 11px;
+  color: #334155;
+}
+
+.wl-pct {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.wl-pct--up   { color: #22c55e; }
+.wl-pct--dn   { color: #ef4444; }
+.wl-pct--flat { color: #475569; }
+
+/* ── Score row ──────────────────────────────────────────────────────────────*/
+.wl-score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .wl-score-lbl {
-  flex: 1;
   font-size: 10px;
+  font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #334155;
-}
-
-.wl-score-num {
-  font-size: 14px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.wl-score-lvl {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .wl-score-track {
-  height: 2px;
-  background: #111d2e;
-  border-radius: 1px;
-  overflow: hidden;
-}
-
-.wl-score-fill {
-  height: 100%;
-  border-radius: 1px;
-  transition: width 0.5s ease;
-}
-
-/* ── Signal grid ────────────────────────────────────────────────────────────*/
-.wl-sig-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 24px;
-}
-
-.wl-sig {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.wl-sig-label {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: #334155;
-}
-
-.wl-sig-bar-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.wl-sig-track {
   flex: 1;
   height: 3px;
   background: #111d2e;
   border-radius: 2px;
   overflow: hidden;
+  min-width: 40px;
 }
 
-.wl-sig-fill {
+.wl-score-fill {
   height: 100%;
+  background: #3b82f6;
   border-radius: 2px;
   transition: width 0.5s ease;
 }
 
-.wl-sig-score {
-  font-size: 10px;
-  color: #334155;
+.wl-score-val {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
   white-space: nowrap;
+  flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
 
-.wl-sig-detail {
-  font-size: 10px;
-  color: #243350;
-  font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+/* ── Signal tile grid ───────────────────────────────────────────────────────*/
+.wl-sig-grid {
+  display: grid;
+  gap: 8px;
 }
 
-.wl-sig-detail--empty { opacity: 0; }
+.wl-sig-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.wl-sig-grid--2 { grid-template-columns: repeat(2, 1fr); }
+
+.wl-sig-box {
+  background: #0d1526;
+  border: 1px solid #1a2740;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wl-sig-lbl {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #334155;
+  line-height: 1.3;
+}
+
+.wl-sig-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+
+.wl-sig-sub {
+  font-size: 10px;
+  color: #475569;
+}
 
 /* ── Direction ──────────────────────────────────────────────────────────────*/
 .wl-dir {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .wl-dir-arrow {
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1;
 }
 
-.wl-dir-text {
+.wl-dir-txt {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -290,20 +294,19 @@
 }
 
 .wl-dir--bullish .wl-dir-arrow,
-.wl-dir--bullish .wl-dir-text { color: #22c55e; }
+.wl-dir--bullish .wl-dir-txt { color: #22c55e; }
 
 .wl-dir--bearish .wl-dir-arrow,
-.wl-dir--bearish .wl-dir-text { color: #ef4444; }
+.wl-dir--bearish .wl-dir-txt { color: #ef4444; }
 
 .wl-dir--neutral .wl-dir-arrow,
-.wl-dir--neutral .wl-dir-text { color: #334155; }
+.wl-dir--neutral .wl-dir-txt { color: #334155; }
 
 /* ── News section ───────────────────────────────────────────────────────────*/
-.wl-news {
+.wl-news-section {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  border-top: 1px solid #111d2e;
+  border-top: 1px solid #0f1a2d;
   padding-top: 12px;
 }
 
@@ -313,7 +316,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #1a2740;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .wl-news-empty {
@@ -326,33 +329,34 @@
 .wl-news-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 7px 0;
-  border-bottom: 1px solid #0d1829;
+  gap: 3px;
+  padding: 6px 0;
+  border-bottom: 1px solid #0a1220;
   text-decoration: none;
 }
 
 .wl-news-row:last-child { border-bottom: none; }
 
-.wl-news-headline {
+.wl-news-hline {
   font-size: 12px;
-  color: #475569;
+  color: #94a3b8;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color 0.15s;
 }
 
-.wl-news-row:hover .wl-news-headline { color: #94a3b8; }
+.wl-news-row:hover .wl-news-hline { color: #cbd5e1; }
 
 .wl-news-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
 }
 
 .wl-news-src  { font-size: 10px; color: #334155; }
-.wl-news-time { font-size: 10px; color: #243350; }
+.wl-news-sep  { font-size: 10px; color: #1a2740; }
+.wl-news-time { font-size: 10px; color: #334155; }
 
 .wl-news-dot {
   width: 6px;
@@ -362,6 +366,27 @@
   margin-left: auto;
 }
 
+/* ── Secondary card wrapper (clickable, shows hover hint) ───────────────────*/
+.wl-secondary-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.wl-swap-hint {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #1e3a5f;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.wl-secondary-wrap:hover .wl-swap-hint { opacity: 1; }
+
 /* ── Secondary grid ─────────────────────────────────────────────────────────*/
 .wl-secondary-grid {
   display: grid;
@@ -370,9 +395,7 @@
 }
 
 /* ── Add ticker ─────────────────────────────────────────────────────────────*/
-.wl-add-row {
-  margin-top: 4px;
-}
+.wl-add-row { margin-top: 4px; }
 
 .wl-add-btn {
   display: flex;
@@ -393,7 +416,7 @@
 }
 
 .wl-add-btn:hover {
-  border-color: #243350;
+  border-color: #2d4a6b;
   color: #475569;
 }
 
@@ -418,7 +441,7 @@
 
 .wl-add-cancel:hover { color: #475569; }
 
-/* ── Search shared ──────────────────────────────────────────────────────────*/
+/* ── Search ─────────────────────────────────────────────────────────────────*/
 .wl-search-wrap {
   position: relative;
   flex: 1;
@@ -441,7 +464,7 @@
 .wl-search-input::placeholder { color: #243350; }
 .wl-search-input:focus { border-color: #334155; }
 
-.wl-search-dropdown {
+.wl-search-dd {
   position: absolute;
   top: calc(100% + 2px);
   left: 0;
@@ -500,7 +523,7 @@
   color: #f59e0b;
 }
 
-/* ── Unauthenticated / empty state ──────────────────────────────────────────*/
+/* ── Empty / unauthenticated ────────────────────────────────────────────────*/
 .wl-empty-page {
   max-width: 480px;
   margin: 60px auto;
@@ -521,15 +544,9 @@
   font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
 }
 
-.wl-tl {
-  font-size: 13px;
-  color: #e2e8f0;
-  line-height: 1.4;
-}
-
-.wl-tl--dim  { color: #243350; }
-.wl-tl--blue { color: #3b82f6; }
-
+.wl-tl        { font-size: 13px; color: #e2e8f0; line-height: 1.4; }
+.wl-tl--dim   { color: #243350; }
+.wl-tl--blue  { color: #3b82f6; }
 .wl-tl--cursor {
   color: #22c55e;
   animation: wl-blink 1s step-end infinite;
@@ -563,11 +580,9 @@
 
 .wl-signin-btn:hover { background: #16a34a; }
 
-.wl-empty-search {
-  width: 100%;
-}
+.wl-empty-search { width: 100%; }
 
-/* ── Initial scanning state ─────────────────────────────────────────────────*/
+/* ── Scanning state ─────────────────────────────────────────────────────────*/
 .wl-scanning-wrap {
   padding: 80px 0;
   display: flex;
@@ -583,18 +598,10 @@
 
 /* ── Responsive ─────────────────────────────────────────────────────────────*/
 @media (max-width: 640px) {
-  .wl-secondary-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .wl-sig-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .wl-card {
-    padding: 16px;
-  }
-
-  .wl-card-sym  { font-size: 18px; }
-  .wl-card-price { font-size: 16px; }
+  .wl-secondary-grid  { grid-template-columns: 1fr; }
+  .wl-sig-grid--3     { grid-template-columns: repeat(2, 1fr); }
+  .wl-page            { padding: 20px 16px 60px; }
+  .wl-card            { padding: 16px; }
+  .wl-sym             { font-size: 18px; }
+  .wl-price           { font-size: 16px; }
 }

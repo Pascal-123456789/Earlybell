@@ -8,13 +8,6 @@ import './WatchlistDashboard.css';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const FINNHUB_KEY  = import.meta.env.VITE_FINNHUB_API_KEY;
 
-const LEVEL_COLOR = {
-  CRITICAL: '#ef4444',
-  HIGH:     '#f59e0b',
-  MEDIUM:   '#6366f1',
-  LOW:      '#334155',
-};
-
 const scoreToLevel = (s) => {
   if (s >= 7) return 'CRITICAL';
   if (s >= 5) return 'HIGH';
@@ -22,22 +15,22 @@ const scoreToLevel = (s) => {
   return 'LOW';
 };
 
+const LEVEL_SHORT = { CRITICAL: 'CRIT', HIGH: 'HIGH', MEDIUM: 'MED', LOW: 'LOW' };
+
 function getDirection(d) {
   if (!d) return 'NEUTRAL';
   let score = 0;
-  const cpRatio  = d.options_signal?.call_put_ratio || 0;
-  const callVol  = d.options_signal?.total_call_volume || 0;
-  const putVol   = d.options_signal?.total_put_volume  || 0;
-  const pricePct = d.price_change_pct || 0;
+  const cpRatio   = d.options_signal?.call_put_ratio || 0;
+  const callVol   = d.options_signal?.total_call_volume || 0;
+  const putVol    = d.options_signal?.total_put_volume  || 0;
+  const pricePct  = d.price_change_pct || 0;
   const sentiment = d.sentiment_score || 0;
   const social    = d.social_signal?.score || 0;
-
-  if (cpRatio > 2.0)   score += 2; else if (cpRatio > 0 && cpRatio < 0.7) score -= 2;
-  if (callVol > putVol * 1.5) score += 1; else if (putVol > callVol * 1.5) score -= 1;
-  if (pricePct > 1.5)  score += 1; else if (pricePct < -1.5) score -= 1;
-  if (sentiment > 0.3) score += 0.5; else if (sentiment < -0.3) score -= 0.5;
+  if (cpRatio > 2.0)          score += 2; else if (cpRatio > 0 && cpRatio < 0.7) score -= 2;
+  if (callVol > putVol * 1.5) score += 1; else if (putVol > callVol * 1.5)       score -= 1;
+  if (pricePct > 1.5)         score += 1; else if (pricePct < -1.5)              score -= 1;
+  if (sentiment > 0.3)        score += 0.5; else if (sentiment < -0.3)           score -= 0.5;
   if (social >= 5) { if (pricePct > 0) score += 0.5; else if (pricePct < 0) score -= 0.5; }
-
   return score > 1.5 ? 'BULLISH' : score < -1.5 ? 'BEARISH' : 'NEUTRAL';
 }
 
@@ -55,7 +48,7 @@ function formatTimeAgo(unix) {
 const fetchFinnhubQuote = async (symbol) => {
   if (!FINNHUB_KEY) return null;
   try {
-    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_KEY}`);
+    const res  = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_KEY}`);
     if (!res.ok) return null;
     const data = await res.json();
     if (!data.c) return null;
@@ -75,151 +68,215 @@ const searchFinnhub = async (query) => {
   } catch { return []; }
 };
 
-// ── Signal block ────────────────────────────────────────────────────────────
-function SignalBlock({ label, score, detail }) {
-  const s     = Math.max(0, Math.min(score || 0, 10));
-  const level = scoreToLevel(s);
-  const color = level === 'LOW' ? '#1a2740' : LEVEL_COLOR[level];
+// ── Signal tile (bordered box) ───────────────────────────────────────────────
+function SignalBox({ label, score, sub }) {
+  const s = Math.max(0, Math.min(score || 0, 10));
   return (
-    <div className="wl-sig">
-      <span className="wl-sig-label">{label}</span>
-      <div className="wl-sig-bar-row">
-        <div className="wl-sig-track">
-          <div className="wl-sig-fill" style={{ width: `${(s / 10) * 100}%`, background: color }} />
-        </div>
-        <span className="wl-sig-score">{s.toFixed(0)}/10</span>
-      </div>
-      {detail ? <span className="wl-sig-detail">{detail}</span> : <span className="wl-sig-detail wl-sig-detail--empty">—</span>}
+    <div className="wl-sig-box">
+      <span className="wl-sig-lbl">{label}</span>
+      <span className="wl-sig-val">{s.toFixed(0)}/10</span>
+      <span className="wl-sig-sub">{sub || '—'}</span>
     </div>
   );
 }
 
-// ── Ticker card ─────────────────────────────────────────────────────────────
-function TickerCard({ data, moversEntry, featured, onRemove, liveQuote }) {
-  const score    = data.early_warning_score || 0;
-  const level    = scoreToLevel(score);
-  const color    = LEVEL_COLOR[level];
-  const name     = TICKER_DATA[data.ticker]?.name || '';
-  const price    = data.current_price  || liveQuote?.price || null;
-  const pct      = data.price_change_pct ?? liveQuote?.pct ?? null;
-  const dir      = getDirection(data);
-  const sentimentScore = data.sentiment_score != null
-    ? ((data.sentiment_score + 1) / 2) * 10
-    : 0;
-  const moverScore  = moversEntry?.mover_score || 0;
-  const moverLabel  = moversEntry?.label || '';
-  const moverDetail = moverScore > 0
-    ? `${moverLabel}${moversEntry?.momentum_pct != null ? ` · ${moversEntry.momentum_pct > 0 ? '+' : ''}${moversEntry.momentum_pct.toFixed(1)}%` : ''}`
-    : null;
+// ── Score bar row ────────────────────────────────────────────────────────────
+function ScoreRow({ score, short }) {
+  const level = scoreToLevel(score);
+  return (
+    <div className="wl-score-row">
+      <span className="wl-score-lbl">{short ? 'SCORE' : 'EARLY WARNING SCORE'}</span>
+      <div className="wl-score-track">
+        <div className="wl-score-fill" style={{ width: `${Math.min((score / 10) * 100, 100)}%` }} />
+      </div>
+      <span className="wl-score-val">
+        {score.toFixed(1)}&nbsp;·&nbsp;{short ? LEVEL_SHORT[level] : level}
+      </span>
+    </div>
+  );
+}
 
-  const articles = data.recent_articles || [];
+// ── Direction line ───────────────────────────────────────────────────────────
+function DirLine({ data }) {
+  const dir = getDirection(data);
+  const arrow = dir === 'BULLISH' ? '↑' : dir === 'BEARISH' ? '↓' : '→';
+  return (
+    <div className={`wl-dir wl-dir--${dir.toLowerCase()}`}>
+      <span className="wl-dir-arrow">{arrow}</span>
+      <span className="wl-dir-txt">{dir}</span>
+    </div>
+  );
+}
+
+// ── Single news row ──────────────────────────────────────────────────────────
+function NewsRow({ art }) {
+  const dotColor = art.sentiment === 'positive' ? '#22c55e'
+    : art.sentiment === 'negative' ? '#ef4444' : '#334155';
+  return (
+    <a href={art.url} target="_blank" rel="noopener noreferrer" className="wl-news-row">
+      <div className="wl-news-hline">{art.headline}</div>
+      <div className="wl-news-meta">
+        <span className="wl-news-src">{art.source}</span>
+        <span className="wl-news-sep">·</span>
+        <span className="wl-news-time">{formatTimeAgo(art.published_at)}</span>
+        <span className="wl-news-dot" style={{ background: dotColor }} />
+      </div>
+    </a>
+  );
+}
+
+// ── Card header (shared) ─────────────────────────────────────────────────────
+function CardHeader({ data, liveQuote, featured, onRemove }) {
+  const name  = TICKER_DATA[data.ticker]?.name || '';
+  const price = data.current_price || liveQuote?.price || null;
+  const pct   = data.price_change_pct ?? liveQuote?.pct ?? null;
+  const pctClass = pct > 0 ? 'up' : pct < 0 ? 'dn' : 'flat';
 
   return (
-    <div className={`wl-card${featured ? ' wl-card--featured' : ''}`}>
-      {featured && <span className="wl-badge-top">★ TOP SIGNAL</span>}
-
-      {/* Header */}
-      <div className="wl-card-header">
-        <div className="wl-card-id">
-          <span className="wl-card-sym">{data.ticker}</span>
-          {name && <span className="wl-card-name">{name}</span>}
+    <div className="wl-card-hd">
+      <div className="wl-hd-row1">
+        <div className="wl-hd-sym-wrap">
+          <span className={`wl-sym${featured ? '' : ' wl-sym--sm'}`}>{data.ticker}</span>
+          {featured && <span className="wl-badge">★ TOP SIGNAL</span>}
         </div>
-        <div className="wl-card-prices">
-          {price != null && <span className="wl-card-price">${price.toFixed(2)}</span>}
-          {pct  != null && (
-            <span className={`wl-card-pct wl-pct-${pct > 0 ? 'up' : pct < 0 ? 'dn' : 'flat'}`}>
-              {pct > 0 ? '↑' : pct < 0 ? '↓' : ''}{Math.abs(pct).toFixed(2)}%
+        <div className="wl-hd-price-wrap">
+          {price != null && (
+            <span className={`wl-price${featured ? '' : ' wl-price--sm'}`}>
+              ${price.toFixed(2)}
             </span>
           )}
-        </div>
-        <button className="wl-remove" onClick={onRemove} title={`Remove ${data.ticker}`}>
-          <FiX size={11} />
-        </button>
-      </div>
-
-      {/* Score bar */}
-      <div className="wl-score-wrap">
-        <div className="wl-score-top">
-          <span className="wl-score-lbl">EARLY WARNING SCORE</span>
-          <span className="wl-score-num" style={{ color }}>{score.toFixed(1)}</span>
-          <span className="wl-score-lvl" style={{ color }}>{level}</span>
-        </div>
-        <div className="wl-score-track">
-          <div className="wl-score-fill" style={{ width: `${(score / 10) * 100}%`, background: color }} />
+          <button
+            className="wl-remove-btn"
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            title={`Remove ${data.ticker}`}
+          >
+            <FiX size={11} />
+          </button>
         </div>
       </div>
-
-      {/* Signal grid */}
-      <div className="wl-sig-grid">
-        <SignalBlock
-          label="OPTIONS FLOW"
-          score={data.options_signal?.score || 0}
-          detail={data.options_signal?.call_put_ratio > 0 ? `${data.options_signal.call_put_ratio.toFixed(1)}x C/P` : null}
-        />
-        <SignalBlock
-          label="VOLUME SPIKE"
-          score={data.volume_signal?.score || 0}
-          detail={data.volume_signal?.volume_ratio_today > 0 ? `${data.volume_signal.volume_ratio_today.toFixed(1)}x avg` : null}
-        />
-        <SignalBlock
-          label="SOCIAL BUZZ"
-          score={data.social_signal?.score || 0}
-          detail={data.social_signal?.mentions > 0 ? `${data.social_signal.mentions} mentions` : null}
-        />
-        <SignalBlock
-          label="INSIDER BUY"
-          score={data.insider_signal?.score || 0}
-          detail={data.insider_signal?.purchases_30d > 0 ? `${data.insider_signal.purchases_30d} purchases` : null}
-        />
-        <SignalBlock
-          label="SENTIMENT"
-          score={sentimentScore}
-          detail={data.news_count > 0 ? `${data.news_count} articles` : null}
-        />
-        <SignalBlock
-          label="PREDICTED MOVE"
-          score={moverScore}
-          detail={moverDetail}
-        />
-      </div>
-
-      {/* Direction */}
-      <div className={`wl-dir wl-dir--${dir.toLowerCase()}`}>
-        <span className="wl-dir-arrow">{dir === 'BULLISH' ? '↑' : dir === 'BEARISH' ? '↓' : '→'}</span>
-        <span className="wl-dir-text">{dir}</span>
-      </div>
-
-      {/* News */}
-      <div className="wl-news">
-        <div className="wl-news-hd">LATEST NEWS</div>
-        {articles.length === 0 ? (
-          <div className="wl-news-empty">&gt; NO RECENT COVERAGE FOUND</div>
-        ) : (
-          articles.map((art, i) => (
-            <a key={i} href={art.url} target="_blank" rel="noopener noreferrer" className="wl-news-row">
-              <div className="wl-news-headline">{art.headline}</div>
-              <div className="wl-news-meta">
-                <span className="wl-news-src">{art.source}</span>
-                <span className="wl-news-time">{formatTimeAgo(art.published_at)}</span>
-                <span className="wl-news-dot" style={{
-                  background: art.sentiment === 'positive' ? '#22c55e'
-                    : art.sentiment === 'negative' ? '#ef4444' : '#334155',
-                }} />
-              </div>
-            </a>
-          ))
+      <div className="wl-hd-row2">
+        <span className="wl-company">{name}</span>
+        {pct != null && (
+          <span className={`wl-pct wl-pct--${pctClass}`}>
+            {pct > 0 ? '↑' : pct < 0 ? '↓' : ''}{Math.abs(pct).toFixed(2)}%
+          </span>
         )}
       </div>
     </div>
   );
 }
 
-// ── Ticker search dropdown ───────────────────────────────────────────────────
+// ── Featured card ────────────────────────────────────────────────────────────
+function FeaturedCard({ data, moversEntry, liveQuote, onRemove }) {
+  const score         = data.early_warning_score || 0;
+  const sentimentScore = data.sentiment_score != null ? ((data.sentiment_score + 1) / 2) * 10 : 0;
+  const moverScore    = moversEntry?.mover_score || 0;
+  const moverSub      = moverScore > 0 && moversEntry
+    ? `${moversEntry.label}${moversEntry.momentum_pct != null
+        ? ` ${moversEntry.momentum_pct > 0 ? '+' : ''}${moversEntry.momentum_pct.toFixed(1)}%` : ''}`
+    : null;
+  const articles = (data.recent_articles || []).slice(0, 3);
+
+  return (
+    <div className="wl-card wl-card--featured">
+      <CardHeader data={data} liveQuote={liveQuote} featured onRemove={onRemove} />
+      <ScoreRow score={score} short={false} />
+
+      <div className="wl-sig-grid wl-sig-grid--3">
+        <SignalBox
+          label="OPTIONS FLOW"
+          score={data.options_signal?.score || 0}
+          sub={data.options_signal?.call_put_ratio > 0
+            ? `${data.options_signal.call_put_ratio.toFixed(1)}× C/P` : null}
+        />
+        <SignalBox
+          label="VOLUME SPIKE"
+          score={data.volume_signal?.score || 0}
+          sub={data.volume_signal?.volume_ratio_today > 0
+            ? `${data.volume_signal.volume_ratio_today.toFixed(2)}× avg` : null}
+        />
+        <SignalBox
+          label="SOCIAL BUZZ"
+          score={data.social_signal?.score || 0}
+          sub={data.social_signal?.mentions > 0
+            ? `${data.social_signal.mentions} mentions` : null}
+        />
+        <SignalBox
+          label="INSIDER BUY"
+          score={data.insider_signal?.score || 0}
+          sub={data.insider_signal?.purchases_30d > 0
+            ? `${data.insider_signal.purchases_30d} purchases` : 'no filings'}
+        />
+        <SignalBox label="SENTIMENT"     score={sentimentScore} sub={data.news_count > 0 ? `${data.news_count} articles` : null} />
+        <SignalBox label="PREDICTED MOVE" score={moverScore}    sub={moverSub} />
+      </div>
+
+      <DirLine data={data} />
+
+      <div className="wl-news-section">
+        <div className="wl-news-hd">LATEST NEWS</div>
+        {articles.length === 0
+          ? <div className="wl-news-empty">&gt; NO RECENT COVERAGE FOUND</div>
+          : articles.map((art, i) => <NewsRow key={i} art={art} />)}
+      </div>
+    </div>
+  );
+}
+
+// ── Secondary card (clickable to promote to featured) ────────────────────────
+function SecondaryCard({ data, liveQuote, onRemove, onSwap }) {
+  const score          = data.early_warning_score || 0;
+  const sentimentScore = data.sentiment_score != null ? ((data.sentiment_score + 1) / 2) * 10 : 0;
+  const articles       = (data.recent_articles || []).slice(0, 2);
+
+  return (
+    <div className="wl-secondary-wrap" onClick={onSwap}>
+      <div className="wl-card wl-card--secondary">
+        <CardHeader data={data} liveQuote={liveQuote} featured={false} onRemove={onRemove} />
+        <ScoreRow score={score} short />
+
+        <div className="wl-sig-grid wl-sig-grid--2">
+          <SignalBox
+            label="OPTIONS FLOW"
+            score={data.options_signal?.score || 0}
+            sub={data.options_signal?.call_put_ratio > 0
+              ? `${data.options_signal.call_put_ratio.toFixed(1)}× C/P` : null}
+          />
+          <SignalBox
+            label="VOLUME SPIKE"
+            score={data.volume_signal?.score || 0}
+            sub={data.volume_signal?.volume_ratio_today > 0
+              ? `${data.volume_signal.volume_ratio_today.toFixed(2)}× avg` : null}
+          />
+          <SignalBox
+            label="SOCIAL BUZZ"
+            score={data.social_signal?.score || 0}
+            sub={data.social_signal?.mentions > 0
+              ? `${data.social_signal.mentions} mentions` : null}
+          />
+          <SignalBox label="SENTIMENT" score={sentimentScore} sub={data.news_count > 0 ? `${data.news_count} articles` : null} />
+        </div>
+
+        <DirLine data={data} />
+
+        <div className="wl-news-section">
+          <div className="wl-news-hd">LATEST NEWS</div>
+          {articles.length === 0
+            ? <div className="wl-news-empty">&gt; NO RECENT COVERAGE FOUND</div>
+            : articles.map((art, i) => <NewsRow key={i} art={art} />)}
+        </div>
+      </div>
+      <div className="wl-swap-hint">CLICK TO FOCUS</div>
+    </div>
+  );
+}
+
+// ── Ticker search ────────────────────────────────────────────────────────────
 function TickerSearch({ onPick, limitMsg, searchBoxRef }) {
-  const [query,    setQuery]    = useState('');
-  const [results,  setResults]  = useState([]);
+  const [query,     setQuery]     = useState('');
+  const [results,   setResults]   = useState([]);
   const [searching, setSearching] = useState(false);
-  const [open,     setOpen]     = useState(false);
+  const [open,      setOpen]      = useState(false);
   const debounceRef = useRef(null);
 
   const handleChange = (e) => {
@@ -256,7 +313,7 @@ function TickerSearch({ onPick, limitMsg, searchBoxRef }) {
         autoComplete="off"
       />
       {open && query.trim() && (
-        <div className="wl-search-dropdown">
+        <div className="wl-search-dd">
           {searching ? (
             <div className="wl-dd-msg">Searching…</div>
           ) : results.length === 0 ? (
@@ -281,22 +338,34 @@ export default function WatchlistDashboard({ onOpenAuth }) {
   const { user }   = useAuth();
   const { watchlist, addTicker, removeTicker, maxTickers } = useWatchlist();
 
-  const [scanResults,   setScanResults]   = useState([]);
-  const [moversMap,     setMoversMap]     = useState({});
-  const [loading,       setLoading]       = useState(false);
-  const [scanPhase,     setScanPhase]     = useState(0);
-  const [lastRefreshed, setLastRefreshed] = useState(null);
-  const [liveQuotes,    setLiveQuotes]    = useState({});
-  const [addOpen,       setAddOpen]       = useState(false);
-  const [limitMsg,      setLimitMsg]      = useState(null);
+  const [scanResults,    setScanResults]    = useState([]);
+  const [moversMap,      setMoversMap]      = useState({});
+  const [loading,        setLoading]        = useState(false);
+  const [scanPhase,      setScanPhase]      = useState(0);
+  const [lastRefreshed,  setLastRefreshed]  = useState(null);
+  const [liveQuotes,     setLiveQuotes]     = useState({});
+  const [featuredTicker, setFeaturedTicker] = useState(null);
+  const [addOpen,        setAddOpen]        = useState(false);
+  const [limitMsg,       setLimitMsg]       = useState(null);
   const searchBoxRef = useRef(null);
 
-  // Animate scan phase
+  // Scanning animation
   useEffect(() => {
     if (!loading || watchlist.length === 0) return;
     const id = setInterval(() => setScanPhase(p => (p + 1) % watchlist.length), 700);
     return () => clearInterval(id);
   }, [loading, watchlist]);
+
+  // Auto-select featured ticker when results arrive; preserve manual choice
+  useEffect(() => {
+    if (scanResults.length === 0) return;
+    setFeaturedTicker(prev => {
+      if (prev && scanResults.some(r => r.ticker === prev)) return prev;
+      const top = [...scanResults].sort((a, b) =>
+        (b.early_warning_score || 0) - (a.early_warning_score || 0))[0];
+      return top?.ticker || null;
+    });
+  }, [scanResults]);
 
   const runScan = useCallback(async () => {
     if (watchlist.length === 0) return;
@@ -320,13 +389,12 @@ export default function WatchlistDashboard({ onOpenAuth }) {
     setLoading(false);
   }, [watchlist]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Run on mount and whenever watchlist contents change
   const wlKey = watchlist.join(',');
   useEffect(() => {
     if (watchlist.length > 0) runScan();
   }, [wlKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Close dropdown on outside click
+  // Close search dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) setAddOpen(false);
@@ -351,17 +419,18 @@ export default function WatchlistDashboard({ onOpenAuth }) {
   const formatRefreshed = () => {
     if (!lastRefreshed) return null;
     const mins = Math.round((Date.now() - lastRefreshed.getTime()) / 60000);
-    if (mins < 1)  return 'just now';
+    if (mins < 1)   return 'just now';
     if (mins === 1) return '1m ago';
     return `${mins}m ago`;
   };
 
-  // Sort by score desc; featured = highest
-  const sorted   = [...scanResults].sort((a, b) => (b.early_warning_score || 0) - (a.early_warning_score || 0));
-  const featured  = sorted[0] || null;
-  const secondary = sorted.slice(1);
+  // Derive featured / secondary from featuredTicker state
+  const featuredData  = scanResults.find(r => r.ticker === featuredTicker)
+    || [...scanResults].sort((a, b) => (b.early_warning_score || 0) - (a.early_warning_score || 0))[0]
+    || null;
+  const secondaryData = scanResults.filter(r => r.ticker !== featuredData?.ticker);
 
-  // ── UNAUTHENTICATED OR EMPTY ────────────────────────────────────────────
+  // ── UNAUTHENTICATED / EMPTY ─────────────────────────────────────────────
   if (!user || watchlist.length === 0) {
     return (
       <div className="wl-empty-page">
@@ -395,7 +464,9 @@ export default function WatchlistDashboard({ onOpenAuth }) {
     return (
       <div className="wl-page">
         <div className="wl-page-hd">
-          <span className="wl-page-title">MY WATCHLIST</span>
+          <span className="wl-page-title">
+            MY WATCHLIST · {watchlist.length} TICKER{watchlist.length !== 1 ? 'S' : ''}
+          </span>
         </div>
         <div className="wl-scanning-wrap">
           <div className="wl-scanning-term">
@@ -413,13 +484,15 @@ export default function WatchlistDashboard({ onOpenAuth }) {
     <div className="wl-page">
       {/* Page header */}
       <div className="wl-page-hd">
-        <span className="wl-page-title">MY WATCHLIST</span>
+        <span className="wl-page-title">
+          MY WATCHLIST · {watchlist.length} TICKER{watchlist.length !== 1 ? 'S' : ''}
+        </span>
         <div className="wl-page-hd-right">
           {lastRefreshed && !loading && (
             <span className="wl-refreshed-ts">REFRESHED {formatRefreshed()}</span>
           )}
           {loading ? (
-            <span className="wl-scanning-label">&gt; SCANNING {watchlist[scanPhase]}...</span>
+            <span className="wl-scanning-lbl">&gt; SCANNING {watchlist[scanPhase]}...</span>
           ) : (
             <button className="wl-refresh-btn" onClick={runScan}>
               <FiRefreshCw size={11} /> REFRESH
@@ -429,27 +502,25 @@ export default function WatchlistDashboard({ onOpenAuth }) {
       </div>
 
       {/* Featured card */}
-      {featured && (
-        <TickerCard
-          data={featured}
-          moversEntry={moversMap[featured.ticker]}
-          featured
-          onRemove={() => removeTicker(featured.ticker)}
-          liveQuote={liveQuotes[featured.ticker]}
+      {featuredData && (
+        <FeaturedCard
+          data={featuredData}
+          moversEntry={moversMap[featuredData.ticker]}
+          liveQuote={liveQuotes[featuredData.ticker]}
+          onRemove={() => removeTicker(featuredData.ticker)}
         />
       )}
 
-      {/* Secondary cards */}
-      {secondary.length > 0 && (
+      {/* Secondary cards grid */}
+      {secondaryData.length > 0 && (
         <div className="wl-secondary-grid">
-          {secondary.map(d => (
-            <TickerCard
+          {secondaryData.map(d => (
+            <SecondaryCard
               key={d.ticker}
               data={d}
-              moversEntry={moversMap[d.ticker]}
-              featured={false}
-              onRemove={() => removeTicker(d.ticker)}
               liveQuote={liveQuotes[d.ticker]}
+              onRemove={() => removeTicker(d.ticker)}
+              onSwap={() => setFeaturedTicker(d.ticker)}
             />
           ))}
         </div>
