@@ -11,6 +11,7 @@ import NewsIntelligence from './NewsIntelligence';
 import PremiumAccess from './PremiumAccess';
 import AuthModal from './AuthModal';
 import AccountView from './AccountView';
+import WatchlistDashboard from './WatchlistDashboard';
 import { useAuth } from './AuthContext';
 
 // --- COMPONENT: HelpModal ---
@@ -246,7 +247,7 @@ export default function App() {
             case 'history':
                 return <AlertHistoryView />;
             case 'watchlist':
-                return <WatchlistView />;
+                return <WatchlistDashboard onOpenAuth={() => setShowAuthModal(true)} />;
             case 'account':
                 return <AccountView />;
             case 'about':
@@ -294,14 +295,8 @@ export default function App() {
                             </div>
                             <div className={`nav-item ${currentView === 'watchlist' ? 'active' : ''}`}
                                  onClick={() => setCurrentView('watchlist')}>
-                                <FiBookmark /><span>Watchlist</span>
+                                <FiUser /><span>My Watchlist</span>
                             </div>
-                            {user && (
-                                <div className={`nav-item ${currentView === 'account' ? 'active' : ''}`}
-                                     onClick={() => setCurrentView('account')}>
-                                    <FiUser /><span>My Account</span>
-                                </div>
-                            )}
                         </div>
 
                         <hr className="nav-group-divider" />

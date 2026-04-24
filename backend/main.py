@@ -60,6 +60,10 @@ CACHE_TTL_SECONDS = 300 # Time To Live: 5 minutes (300 seconds)
 POLYMARKET_CACHE = {"timestamp": None, "data": None}
 POLYMARKET_CACHE_TTL = 600  # 10 minutes
 
+# --- Watchlist Scan Caching (per-ticker, 10 min TTL) ---
+_watchlist_scan_cache: Dict[str, Dict] = {}
+WATCHLIST_SCAN_TTL = 600  # 10 minutes
+
 POLYMARKET_TICKER_MAP = {
     "fed rate": ["SOFI", "HOOD", "COIN", "BAC", "JPM", "GS", "MS", "WFC"],
     "interest rate": ["SOFI", "HOOD", "COIN", "BAC", "JPM", "GS", "MS", "WFC"],
@@ -1266,6 +1270,147 @@ async def get_cached_alerts():
         print(f"Database read error: {e}")
         return {"error": str(e)}
         
+@app.get("/watchlist-scan")
+async def watchlist_scan(tickers: str):
+    """
+    Run a targeted signal scan for a small list of user-watched tickers.
+    Results are cached per-ticker for 10 minutes to avoid hammering APIs on
+    every page load. Returns same shape as /alerts/scan items, plus
+    recent_articles (top 3 Finnhub articles with per-article sentiment).
+    """
+    global detector
+    if not detector:
+        detector = MemeStockDetector()
+
+    ticker_list = [t.strip().upper() for t in tickers.split(",") if t.strip()]
+    if not ticker_list:
+        return []
+
+    now = time.time()
+    results = []
+
+    for ticker in ticker_list:
+        cached = _watchlist_scan_cache.get(ticker)
+        if cached and (now - cached["ts"]) < WATCHLIST_SCAN_TTL:
+            results.append(cached["data"])
+            continue
+
+        try:
+            result = await detector.get_early_warning_score(ticker)
+
+            # Price
+            try:
+                stock = yf.Ticker(ticker)
+                info = stock.info
+                price = info.get("regularMarketPrice", 0) or 0
+                pct = info.get("regularMarketChangePercent", 0) or 0
+                if price <= 0:
+                    hist = stock.history(period="2d")
+                    if not hist.empty:
+                        price = float(hist["Close"].iloc[-1])
+                        if len(hist) >= 2:
+                            prev = float(hist["Close"].iloc[-2])
+                            pct = ((price - prev) / prev * 100) if prev > 0 else 0
+                result["current_price"] = round(price, 2)
+                result["price_change_pct"] = round(pct, 2)
+            except Exception as e:
+                print(f"watchlist_scan price error for {ticker}: {e}")
+                result["current_price"] = 0
+                result["price_change_pct"] = 0
+
+            # Insider signal
+            try:
+                result["insider_signal"] = await detector.get_insider_signal(ticker)
+            except Exception as e:
+                print(f"watchlist_scan insider error for {ticker}: {e}")
+                result["insider_signal"] = detector._default_insider_result()
+
+            # Finnhub news + per-article sentiment
+            try:
+                sentiment_data = await async_news_sentiment_and_volume(ticker)
+                result["sentiment_score"] = sentiment_data.get("social_raw", 0.0)
+                result["news_count"] = sentiment_data.get("news_raw", 0)
+                recent_articles = []
+                for art in (sentiment_data.get("articles") or [])[:3]:
+                    headline = art.get("headline", "")
+                    text = f"{headline} {art.get('summary', '')}"
+                    polarity = calculate_sentiment(text)
+                    recent_articles.append({
+                        "headline": headline,
+                        "source": art.get("source", ""),
+                        "url": art.get("url", ""),
+                        "published_at": art.get("datetime", 0),
+                        "sentiment": "positive" if polarity > 0.1 else "negative" if polarity < -0.1 else "neutral",
+                        "polarity": round(polarity, 3),
+                    })
+                result["recent_articles"] = recent_articles
+            except Exception as e:
+                print(f"watchlist_scan news error for {ticker}: {e}")
+                result["sentiment_score"] = 0.0
+                result["news_count"] = 0
+                result["recent_articles"] = []
+
+            result["alert_level"] = score_to_level(result["early_warning_score"])
+            _watchlist_scan_cache[ticker] = {"data": result, "ts": now}
+            results.append(result)
+
+        except Exception as e:
+            print(f"watchlist_scan failed for {ticker}: {e}")
+            results.append({
+                "ticker": ticker,
+                "early_warning_score": 0,
+                "alert_level": "LOW",
+                "current_price": 0,
+                "price_change_pct": 0,
+                "recent_articles": [],
+            })
+
+    return results
+
+
+@app.get("/watchlist-news")
+async def watchlist_news(tickers: str):
+    """
+    Returns up to 3 recent Finnhub articles per ticker with sentiment labels.
+    Reads from watchlist-scan cache when fresh; falls back to a Finnhub call.
+    Response shape: { "PLUG": [...], "MU": [...] }
+    """
+    ticker_list = [t.strip().upper() for t in tickers.split(",") if t.strip()]
+    if not ticker_list:
+        return {}
+
+    now = time.time()
+    result = {}
+
+    for ticker in ticker_list:
+        cached = _watchlist_scan_cache.get(ticker)
+        if cached and (now - cached["ts"]) < WATCHLIST_SCAN_TTL:
+            result[ticker] = cached["data"].get("recent_articles", [])
+            continue
+
+        try:
+            sentiment_data = await async_news_sentiment_and_volume(ticker)
+            articles = []
+            for art in (sentiment_data.get("articles") or [])[:3]:
+                headline = art.get("headline", "")
+                text = f"{headline} {art.get('summary', '')}"
+                polarity = calculate_sentiment(text)
+                articles.append({
+                    "headline": headline,
+                    "source": art.get("source", ""),
+                    "url": art.get("url", ""),
+                    "published_at": art.get("datetime", 0),
+                    "sentiment": "positive" if polarity > 0.1 else "negative" if polarity < -0.1 else "neutral",
+                    "polarity": round(polarity, 3),
+                })
+            result[ticker] = articles
+        except Exception as e:
+            print(f"watchlist_news error for {ticker}: {e}")
+            result[ticker] = []
+
+    return result
+
+
 @app.get("/alerts/{ticker}")
 async def get_alert_for_ticker(ticker: str):
     """Get detailed alert info for one ticker"""

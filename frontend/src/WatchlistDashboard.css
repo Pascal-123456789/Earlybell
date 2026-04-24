@@ -1,0 +1,600 @@
+/* WatchlistDashboard.css — premium terminal-panel layout */
+
+/* ── Page shell ─────────────────────────────────────────────────────────────*/
+.wl-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Page header ────────────────────────────────────────────────────────────*/
+.wl-page-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #1a2740;
+  flex-shrink: 0;
+}
+
+.wl-page-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #334155;
+}
+
+.wl-page-hd-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wl-refreshed-ts {
+  font-size: 11px;
+  color: #1a2740;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wl-scanning-label {
+  font-size: 11px;
+  color: #3b82f6;
+  letter-spacing: 0.06em;
+  font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+.wl-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  background: transparent;
+  border: 1px solid #1a2740;
+  border-radius: 3px;
+  color: #334155;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.wl-refresh-btn:hover {
+  border-color: #243350;
+  color: #64748b;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────────────────*/
+.wl-card {
+  background: #0a1220;
+  border: 1px solid #1a2740;
+  border-radius: 4px;
+  padding: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wl-card--featured {
+  border-color: #243350;
+}
+
+.wl-badge-top {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #3b82f6;
+}
+
+/* ── Card header ────────────────────────────────────────────────────────────*/
+.wl-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.wl-card-id {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wl-card-sym {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.wl-card-name {
+  font-size: 11px;
+  color: #475569;
+}
+
+.wl-card-prices {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding-right: 20px; /* space for remove button */
+}
+
+.wl-card-price {
+  font-size: 20px;
+  font-weight: 600;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.wl-card-pct {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.wl-pct-up   { color: #22c55e; }
+.wl-pct-dn   { color: #ef4444; }
+.wl-pct-flat { color: #475569; }
+
+.wl-remove {
+  position: absolute;
+  top: 14px;
+  right: 36px;
+  background: none;
+  border: none;
+  color: #1a2740;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.wl-card--featured .wl-remove { right: 80px; }
+
+.wl-remove:hover { color: #ef4444; }
+
+/* ── Score bar ──────────────────────────────────────────────────────────────*/
+.wl-score-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wl-score-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wl-score-lbl {
+  flex: 1;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #334155;
+}
+
+.wl-score-num {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.wl-score-lvl {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wl-score-track {
+  height: 2px;
+  background: #111d2e;
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.wl-score-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.5s ease;
+}
+
+/* ── Signal grid ────────────────────────────────────────────────────────────*/
+.wl-sig-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+}
+
+.wl-sig {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wl-sig-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #334155;
+}
+
+.wl-sig-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wl-sig-track {
+  flex: 1;
+  height: 3px;
+  background: #111d2e;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.wl-sig-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.wl-sig-score {
+  font-size: 10px;
+  color: #334155;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.wl-sig-detail {
+  font-size: 10px;
+  color: #243350;
+  font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+.wl-sig-detail--empty { opacity: 0; }
+
+/* ── Direction ──────────────────────────────────────────────────────────────*/
+.wl-dir {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wl-dir-arrow {
+  font-size: 14px;
+}
+
+.wl-dir-text {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wl-dir--bullish .wl-dir-arrow,
+.wl-dir--bullish .wl-dir-text { color: #22c55e; }
+
+.wl-dir--bearish .wl-dir-arrow,
+.wl-dir--bearish .wl-dir-text { color: #ef4444; }
+
+.wl-dir--neutral .wl-dir-arrow,
+.wl-dir--neutral .wl-dir-text { color: #334155; }
+
+/* ── News section ───────────────────────────────────────────────────────────*/
+.wl-news {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid #111d2e;
+  padding-top: 12px;
+}
+
+.wl-news-hd {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #1a2740;
+  margin-bottom: 8px;
+}
+
+.wl-news-empty {
+  font-size: 11px;
+  color: #1a2740;
+  font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+  padding: 4px 0;
+}
+
+.wl-news-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 7px 0;
+  border-bottom: 1px solid #0d1829;
+  text-decoration: none;
+}
+
+.wl-news-row:last-child { border-bottom: none; }
+
+.wl-news-headline {
+  font-size: 12px;
+  color: #475569;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.wl-news-row:hover .wl-news-headline { color: #94a3b8; }
+
+.wl-news-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wl-news-src  { font-size: 10px; color: #334155; }
+.wl-news-time { font-size: 10px; color: #243350; }
+
+.wl-news-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* ── Secondary grid ─────────────────────────────────────────────────────────*/
+.wl-secondary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── Add ticker ─────────────────────────────────────────────────────────────*/
+.wl-add-row {
+  margin-top: 4px;
+}
+
+.wl-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px dashed #1a2740;
+  border-radius: 4px;
+  color: #243350;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.wl-add-btn:hover {
+  border-color: #243350;
+  color: #475569;
+}
+
+.wl-add-open {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wl-add-cancel {
+  height: 36px;
+  padding: 0 12px;
+  background: transparent;
+  border: 1px solid #1a2740;
+  border-radius: 3px;
+  color: #334155;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.wl-add-cancel:hover { color: #475569; }
+
+/* ── Search shared ──────────────────────────────────────────────────────────*/
+.wl-search-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.wl-search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  background: #060d18;
+  border: 1px solid #243350;
+  border-radius: 3px;
+  color: #e2e8f0;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.wl-search-input::placeholder { color: #243350; }
+.wl-search-input:focus { border-color: #334155; }
+
+.wl-search-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: #0d1526;
+  border: 1px solid #1a2740;
+  border-radius: 3px;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.wl-dd-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.wl-dd-row:hover { background: #111d2e; }
+
+.wl-dd-sym {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  min-width: 52px;
+  flex-shrink: 0;
+}
+
+.wl-dd-desc {
+  font-size: 12px;
+  color: #475569;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wl-dd-msg {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.wl-limit-msg {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #f59e0b;
+}
+
+/* ── Unauthenticated / empty state ──────────────────────────────────────────*/
+.wl-empty-page {
+  max-width: 480px;
+  margin: 60px auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wl-terminal {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 20px 22px;
+  background: #060d18;
+  border: 1px solid #1a2740;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+.wl-tl {
+  font-size: 13px;
+  color: #e2e8f0;
+  line-height: 1.4;
+}
+
+.wl-tl--dim  { color: #243350; }
+.wl-tl--blue { color: #3b82f6; }
+
+.wl-tl--cursor {
+  color: #22c55e;
+  animation: wl-blink 1s step-end infinite;
+}
+
+@keyframes wl-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.wl-empty-msg {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.wl-signin-btn {
+  align-self: flex-start;
+  height: 36px;
+  padding: 0 20px;
+  background: #22c55e;
+  border: none;
+  border-radius: 3px;
+  color: #000;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.wl-signin-btn:hover { background: #16a34a; }
+
+.wl-empty-search {
+  width: 100%;
+}
+
+/* ── Initial scanning state ─────────────────────────────────────────────────*/
+.wl-scanning-wrap {
+  padding: 80px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.wl-scanning-term {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────*/
+@media (max-width: 640px) {
+  .wl-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wl-sig-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wl-card {
+    padding: 16px;
+  }
+
+  .wl-card-sym  { font-size: 18px; }
+  .wl-card-price { font-size: 16px; }
+}
