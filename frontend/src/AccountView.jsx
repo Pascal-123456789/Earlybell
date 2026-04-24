@@ -9,6 +9,20 @@ if (!FINNHUB_KEY) {
   console.warn('VITE_FINNHUB_API_KEY is not set — ticker search will not work')
 }
 
+const fetchFinnhubQuote = async (symbol) => {
+  try {
+    const res = await fetch(
+      `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_KEY}`
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!data.c) return null
+    return { price: data.c, pct: data.dp }
+  } catch {
+    return null
+  }
+}
+
 const searchTickers = async (query) => {
   if (query.length < 1) return []
   const url = `https://finnhub.io/api/v1/search?q=${encodeURIComponent(query)}&token=${FINNHUB_KEY}`
@@ -58,6 +72,8 @@ export default function AccountView() {
   const [threshold, setThreshold]       = useState(5);
   const [alertEmail, setAlertEmail]     = useState('');
   const [saveStatus, setSaveStatus]     = useState(null); // null | 'saving' | 'saved' | 'error'
+
+  const [liveQuotes, setLiveQuotes] = useState({});
 
   // Ticker search state
   const [query, setQuery]           = useState('');
@@ -149,6 +165,10 @@ export default function AccountView() {
     if (result?.error) {
       setLimitMsg(result.error);
       setTimeout(() => setLimitMsg(null), 3000);
+    } else {
+      fetchFinnhubQuote(symbol).then(quote => {
+        if (quote) setLiveQuotes(prev => ({ ...prev, [symbol]: quote }));
+      });
     }
     setQuery('');
     setResults([]);
@@ -211,15 +231,17 @@ export default function AccountView() {
         ) : (
           watchlist.map(ticker => {
             const d     = scanData[ticker];
+            const live  = liveQuotes[ticker];
             const score = d ? (d.alert_score || d.early_warning_score || 0) : null;
             const level = score != null ? scoreToLevel(score) : null;
-            const pct   = d?.price_change_pct ?? null;
+            const price = d?.current_price ?? live?.price ?? null;
+            const pct   = d?.price_change_pct ?? live?.pct ?? null;
 
             return (
               <div key={ticker} className="acct-ticker-row">
                 <span className="acct-ticker-sym">{ticker}</span>
                 <span className="acct-ticker-price">
-                  {d?.current_price ? `$${d.current_price.toFixed(2)}` : '—'}
+                  {price != null ? `$${price.toFixed(2)}` : '—'}
                 </span>
                 {pct != null && (
                   <span className={`acct-ticker-pct acct-pct-${pct > 0 ? 'up' : pct < 0 ? 'dn' : 'flat'}`}>
