@@ -2,9 +2,10 @@
 
 /* ── Page shell ─────────────────────────────────────────────────────────────*/
 .wl-page {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 28px 24px 80px;
+  width: 100%;
+  max-width: none;
+  margin: 0 -25px;
+  padding: 28px 25px 80px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -340,9 +341,12 @@
 .wl-news-hline {
   font-size: 12px;
   color: #94a3b8;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.4;
   transition: color 0.15s;
 }
 
@@ -392,6 +396,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+  width: 100%;
 }
 
 /* ── Add ticker ─────────────────────────────────────────────────────────────*/
@@ -600,7 +605,7 @@
 @media (max-width: 640px) {
   .wl-secondary-grid  { grid-template-columns: 1fr; }
   .wl-sig-grid--3     { grid-template-columns: repeat(2, 1fr); }
-  .wl-page            { padding: 20px 16px 60px; }
+  .wl-page            { margin: 0 -14px; padding: 20px 14px 60px; }
   .wl-card            { padding: 16px; }
   .wl-sym             { font-size: 18px; }
   .wl-price           { font-size: 16px; }
