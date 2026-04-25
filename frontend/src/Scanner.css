@@ -720,6 +720,45 @@
 
 .sc-drawer-close:hover { color: #e2e8f0; }
 
+/* ── Animations ───────────────────────────────────────────────────────────*/
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes sc-row-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .sc-row--enter {
+    animation: sc-row-enter 250ms ease-out both;
+    animation-delay: calc(var(--row-idx, 0) * 30ms);
+  }
+
+  /* Staggered signal bar transitions */
+  .sc-signals .sc-signal-row:nth-child(1) .sc-signal-fill { transition-delay:   0ms; }
+  .sc-signals .sc-signal-row:nth-child(2) .sc-signal-fill { transition-delay:  80ms; }
+  .sc-signals .sc-signal-row:nth-child(3) .sc-signal-fill { transition-delay: 160ms; }
+  .sc-signals .sc-signal-row:nth-child(4) .sc-signal-fill { transition-delay: 240ms; }
+
+  @keyframes sc-ts-pulse {
+    0%   { color: #22c55e; }
+    70%  { color: #22c55e; }
+    100% { color: #334155; }
+  }
+  .sc-header-ts--pulse { animation: sc-ts-pulse 2500ms ease-out forwards; }
+
+  @keyframes sc-price-flash-up {
+    0%   { background: transparent; }
+    20%  { background: rgba(34,197,94,0.1); }
+    100% { background: transparent; }
+  }
+  @keyframes sc-price-flash-dn {
+    0%   { background: transparent; }
+    20%  { background: rgba(239,68,68,0.1); }
+    100% { background: transparent; }
+  }
+  .sc-price-bar--flash-up { animation: sc-price-flash-up 800ms ease-out forwards; }
+  .sc-price-bar--flash-dn { animation: sc-price-flash-dn 800ms ease-out forwards; }
+}
+
 /* ── Responsive ───────────────────────────────────────────────────────────*/
 @media (max-width: 768px) {
   .sc-scanner {

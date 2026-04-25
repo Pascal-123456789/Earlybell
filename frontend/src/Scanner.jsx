@@ -94,7 +94,7 @@ function fmt(value, decimals = 2, showZero = false) {
 }
 
 // ── Left panel: single ticker row ─────────────────────────────────────────
-const TickerRow = React.memo(({ data, selected, onClick, rowRef, sortBy, badge }) => {
+const TickerRow = React.memo(({ data, selected, onClick, rowRef, sortBy, badge, animIdx, animTick }) => {
   const score    = data.alert_score || data.early_warning_score || 0;
   const level    = scoreToLevel(score);
   const pct      = data.price_change_pct || 0;
@@ -102,10 +102,26 @@ const TickerRow = React.memo(({ data, selected, onClick, rowRef, sortBy, badge }
   const barW     = Math.min(score / 10, 1) * 40;
   const barColor = level === 'LOW' ? '#1a2740' : LEVEL_COLOR[level];
   const showHype = sortBy === 'hype_score';
+  const internalRef = useRef(null);
+
+  const setRef = (el) => {
+    internalRef.current = el;
+    if (typeof rowRef === 'function') rowRef(el);
+  };
+
+  useEffect(() => {
+    const el = internalRef.current;
+    if (!el || animIdx == null) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    el.style.setProperty('--row-idx', animIdx);
+    el.classList.remove('sc-row--enter');
+    void el.offsetWidth; // force reflow
+    el.classList.add('sc-row--enter');
+  }, [animTick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div
-      ref={rowRef}
+      ref={setRef}
       className={`sc-row${selected ? ' sc-row--selected' : ''}`}
       onClick={onClick}
       tabIndex={0}
@@ -141,13 +157,13 @@ const TickerRow = React.memo(({ data, selected, onClick, rowRef, sortBy, badge }
 });
 
 // ── Right panel: signal row ────────────────────────────────────────────────
-const SignalRow = ({ label, score, fillColor, detail }) => (
+const SignalRow = ({ label, score, fillScore, fillColor, detail }) => (
   <div className="sc-signal-row">
     <span className="sc-signal-label">{label}</span>
     <div className="sc-signal-track">
       <div
         className="sc-signal-fill"
-        style={{ width: `${Math.min(score / 10, 1) * 100}%`, background: fillColor }}
+        style={{ width: `${Math.min((fillScore ?? score) / 10, 1) * 100}%`, background: fillColor }}
       />
     </div>
     <span className="sc-signal-score">{score}/10</span>
@@ -191,12 +207,27 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
   const rowRefs = useRef({});
   const listRef = useRef(null);
 
+  // ── Animation state ──
+  const [animTick,    setAnimTick]    = useState(0);
+  const [sigFills,    setSigFills]    = useState(null);
+  const [displayScore, setDisplayScore] = useState(0);
+  const [tsPulse,     setTsPulse]     = useState(false);
+  const [priceFlash,  setPriceFlash]  = useState(null);
+  const countUpRef    = useRef(null);
+  const tsTimerRef    = useRef(null);
+  const priceTimerRef = useRef(null);
+
   // ── Responsive ──
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
+
+  // Re-trigger row entrance on sort change
+  useEffect(() => {
+    if (tickers.length > 0) setAnimTick(t => t + 1);
+  }, [sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Data fetch ──
   useEffect(() => {
@@ -249,6 +280,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
         console.error('Scanner fetch error:', err);
       }
       setLoading(false);
+      setAnimTick(t => t + 1);
     };
     load();
   }, []);
@@ -329,6 +361,67 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
     return () => window.removeEventListener('keydown', handler);
   }, [sorted, selectedTicker, handleSelect]);
 
+  // ── Signal bar fill animation (0 → real on ticker change) ──
+  useEffect(() => {
+    if (!selectedData) { setSigFills(null); return; }
+    setSigFills(null);
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setSigFills({
+          options: selectedData.options_score || 0,
+          volume:  selectedData.volume_score  || 0,
+          social:  selectedData.social_score  ?? 0,
+          insider: selectedData.insider_score || 0,
+        });
+      });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [selectedTicker]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Score count-up ──
+  useEffect(() => {
+    if (!selectedData) { setDisplayScore(0); return; }
+    const target = selectedData.alert_score || selectedData.early_warning_score || 0;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDisplayScore(target);
+      return;
+    }
+    clearInterval(countUpRef.current);
+    setDisplayScore(0);
+    let current = 0;
+    const step = target / 50;
+    countUpRef.current = setInterval(() => {
+      current += step;
+      if (current >= target) {
+        setDisplayScore(target);
+        clearInterval(countUpRef.current);
+      } else {
+        setDisplayScore(current);
+      }
+    }, 16);
+    return () => clearInterval(countUpRef.current);
+  }, [selectedTicker]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Timestamp pulse on first scan result ──
+  useEffect(() => {
+    if (!lastScanned) return;
+    setTsPulse(true);
+    clearTimeout(tsTimerRef.current);
+    tsTimerRef.current = setTimeout(() => setTsPulse(false), 2500);
+    return () => clearTimeout(tsTimerRef.current);
+  }, [lastScanned]);
+
+  // ── Price flash on ticker change ──
+  useEffect(() => {
+    if (!selectedData) { setPriceFlash(null); return; }
+    const pct = selectedData.price_change_pct || 0;
+    if (!pct) return;
+    setPriceFlash(pct > 0 ? 'up' : 'dn');
+    clearTimeout(priceTimerRef.current);
+    priceTimerRef.current = setTimeout(() => setPriceFlash(null), 800);
+    return () => clearTimeout(priceTimerRef.current);
+  }, [selectedTicker]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Alert counts (derived from score, not stored string) ──
   const counts = {
     CRITICAL: tickers.filter(t => scoreToLevel(t.alert_score || t.early_warning_score || 0) === 'CRITICAL').length,
@@ -399,7 +492,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
           </div>
           <div className="sc-detail-header-right">
             <span className="sc-detail-score-num" style={{ color: levelColor }}>
-              {score.toFixed(1)}
+              {displayScore.toFixed(1)}
             </span>
             <span className="sc-detail-level-text" style={{ color: levelColor }}>
               {level}
@@ -410,7 +503,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
         <div className="sc-section-divider" />
 
         {/* Section 2 — Price bar */}
-        <div className="sc-price-bar">
+        <div className={`sc-price-bar${priceFlash ? ` sc-price-bar--flash-${priceFlash}` : ''}`}>
           <span className="sc-price-value">
             {d.current_price ? `$${d.current_price.toFixed(2)}` : '--'}
           </span>
@@ -441,24 +534,28 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
           <SignalRow
             label="OPTIONS"
             score={d.options_score || 0}
+            fillScore={sigFills?.options ?? 0}
             fillColor="#22c55e"
             detail={`C/P: ${fmt(d.options_call_put_ratio)}  Vol/OI: ${fmt(d.options_volume_oi_ratio)}`}
           />
           <SignalRow
             label="VOLUME"
             score={d.volume_score || 0}
+            fillScore={sigFills?.volume ?? 0}
             fillColor="#38bdf8"
             detail={`Today: ${fmt(d.volume_ratio_today)}x avg  5d: ${fmt(d.volume_ratio_5d)}x`}
           />
           <SignalRow
             label="SOCIAL"
             score={d.social_score ?? 0}
+            fillScore={sigFills?.social ?? 0}
             fillColor="#f97316"
             detail={`Mentions: ${fmt(d.social_mentions, 0, true)}  Rank: #${fmt(d.social_rank, 0, true)}`}
           />
           <SignalRow
             label="INSIDER"
             score={d.insider_score || 0}
+            fillScore={sigFills?.insider ?? 0}
             fillColor="#a78bfa"
             detail={`Purchases (30d): ${d.insider_purchases_30d ?? 0}`}
           />
@@ -587,7 +684,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
         <div className="sc-left-header">
           <span className="sc-header-label">SCANNER</span>
           {lastScanned && (
-            <span className="sc-header-ts">Updated {formatAge(lastScanned)}</span>
+            <span className={`sc-header-ts${tsPulse ? ' sc-header-ts--pulse' : ''}`}>Updated {formatAge(lastScanned)}</span>
           )}
         </div>
 
@@ -635,7 +732,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
             const hasSections = tickerConfig &&
               (tickerConfig.social.size > 0 || tickerConfig.movers.size > 0);
 
-            const renderRow = (item, badge) => (
+            const renderRow = (item, badge, idx) => (
               <TickerRow
                 key={item.ticker}
                 data={item}
@@ -644,11 +741,13 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
                 rowRef={el => { rowRefs.current[item.ticker] = el; }}
                 sortBy={sortBy}
                 badge={badge}
+                animIdx={idx}
+                animTick={animTick}
               />
             );
 
             if (!hasSections) {
-              return sorted.map(item => renderRow(item, null));
+              return sorted.map((item, idx) => renderRow(item, null, idx));
             }
 
             // Sort within each section independently
@@ -667,13 +766,13 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
 
             return (
               <>
-                {coreRows.map(item => renderRow(item, null))}
+                {coreRows.map((item, idx) => renderRow(item, null, idx))}
                 {socialRows.length > 0 && (
                   <>
                     <div className="sc-section-divider-row">
                       <span>TRENDING SOCIALLY</span>
                     </div>
-                    {socialRows.map(item => renderRow(item, 'social'))}
+                    {socialRows.map((item, idx) => renderRow(item, 'social', coreRows.length + idx))}
                   </>
                 )}
                 {moverRows.length > 0 && (
@@ -681,7 +780,7 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
                     <div className="sc-section-divider-row">
                       <span>TOP MOVERS TODAY</span>
                     </div>
-                    {moverRows.map(item => renderRow(item, 'mover'))}
+                    {moverRows.map((item, idx) => renderRow(item, 'mover', coreRows.length + socialRows.length + idx))}
                   </>
                 )}
               </>

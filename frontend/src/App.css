@@ -93,6 +93,17 @@ body {
     color: #22c55e;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+    @keyframes eb-heartbeat {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.6; }
+    }
+
+    .sb-wordmark-bell {
+        animation: eb-heartbeat 3s ease-in-out infinite;
+    }
+}
+
 .sb-tagline {
     font-size: 10px;
     color: #334155;

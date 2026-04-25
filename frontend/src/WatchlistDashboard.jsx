@@ -81,13 +81,24 @@ function SignalBox({ label, score, sub }) {
 }
 
 // ── Score bar row ────────────────────────────────────────────────────────────
-function ScoreRow({ score, short }) {
+function ScoreRow({ score, short, barDelay = 0 }) {
+  const [filled, setFilled] = useState(false);
   const level = scoreToLevel(score);
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setFilled(true));
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const fillWidth = filled ? `${Math.min((score / 10) * 100, 100)}%` : '0%';
+
   return (
     <div className="wl-score-row">
       <span className="wl-score-lbl">{short ? 'SCORE' : 'EARLY WARNING SCORE'}</span>
       <div className="wl-score-track">
-        <div className="wl-score-fill" style={{ width: `${Math.min((score / 10) * 100, 100)}%` }} />
+        <div className="wl-score-fill" style={{ width: fillWidth, '--bar-delay': `${barDelay}ms` }} />
       </div>
       <span className="wl-score-val">
         {score.toFixed(1)}&nbsp;·&nbsp;{short ? LEVEL_SHORT[level] : level}
@@ -224,7 +235,7 @@ function FeaturedCard({ data, moversEntry, liveQuote, onRemove }) {
 }
 
 // ── Secondary card (clickable to promote to featured) ────────────────────────
-function SecondaryCard({ data, liveQuote, onRemove, onSwap }) {
+function SecondaryCard({ data, liveQuote, onRemove, onSwap, barDelay = 0 }) {
   const score          = data.early_warning_score || 0;
   const sentimentScore = data.sentiment_score != null ? ((data.sentiment_score + 1) / 2) * 10 : 0;
   const articles       = (data.recent_articles || []).slice(0, 2);
@@ -233,7 +244,7 @@ function SecondaryCard({ data, liveQuote, onRemove, onSwap }) {
     <div className="wl-secondary-wrap" onClick={onSwap}>
       <div className="wl-card wl-card--secondary">
         <CardHeader data={data} liveQuote={liveQuote} featured={false} onRemove={onRemove} />
-        <ScoreRow score={score} short />
+        <ScoreRow score={score} short barDelay={barDelay} />
 
         <div className="wl-sig-grid wl-sig-grid--2">
           <SignalBox
@@ -347,7 +358,9 @@ export default function WatchlistDashboard({ onOpenAuth }) {
   const [featuredTicker, setFeaturedTicker] = useState(null);
   const [addOpen,        setAddOpen]        = useState(false);
   const [limitMsg,       setLimitMsg]       = useState(null);
+  const [tsPulse,        setTsPulse]        = useState(false);
   const searchBoxRef = useRef(null);
+  const tsTimerRef   = useRef(null);
 
   // Scanning animation — cycles ticker name every 1.5s
   useEffect(() => {
@@ -355,6 +368,15 @@ export default function WatchlistDashboard({ onOpenAuth }) {
     const id = setInterval(() => setScanPhase(p => (p + 1) % watchlist.length), 1500);
     return () => clearInterval(id);
   }, [loading, watchlist]);
+
+  // Timestamp pulse when scan completes
+  useEffect(() => {
+    if (!lastRefreshed) return;
+    setTsPulse(true);
+    clearTimeout(tsTimerRef.current);
+    tsTimerRef.current = setTimeout(() => setTsPulse(false), 2000);
+    return () => clearTimeout(tsTimerRef.current);
+  }, [lastRefreshed]);
 
   // Auto-select featured ticker when results arrive; preserve manual choice
   useEffect(() => {
@@ -489,7 +511,7 @@ export default function WatchlistDashboard({ onOpenAuth }) {
         </span>
         <div className="wl-page-hd-right">
           {lastRefreshed && !loading && (
-            <span className="wl-refreshed-ts">REFRESHED {formatRefreshed()}</span>
+            <span className={`wl-refreshed-ts${tsPulse ? ' wl-refreshed-ts--pulse' : ''}`}>REFRESHED {formatRefreshed()}</span>
           )}
           {loading ? (
             <span className="wl-scanning-lbl">&gt; SCANNING {watchlist[scanPhase]}...</span>
@@ -514,13 +536,14 @@ export default function WatchlistDashboard({ onOpenAuth }) {
       {/* Secondary cards grid */}
       {secondaryData.length > 0 && (
         <div className="wl-secondary-grid">
-          {secondaryData.map(d => (
+          {secondaryData.map((d, idx) => (
             <SecondaryCard
               key={d.ticker}
               data={d}
               liveQuote={liveQuotes[d.ticker]}
               onRemove={() => removeTicker(d.ticker)}
               onSwap={() => setFeaturedTicker(d.ticker)}
+              barDelay={(idx + 1) * 80}
             />
           ))}
         </div>
