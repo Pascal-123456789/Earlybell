@@ -246,7 +246,7 @@ export default function App() {
                         <ins
                             className="adsbygoogle"
                             style={{ display: 'block', width: '160px', height: '200px' }}
-                            data-ad-client="YOUR_ADSENSE_CLIENT_ID"
+                            data-ad-client="ca-pub-2538269255745987"
                             data-ad-slot="YOUR_AD_SLOT_ID"
                             data-ad-format="fixed"
                             data-ad-color-scheme="dark"
