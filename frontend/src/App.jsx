@@ -1,18 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { FiActivity, FiRadio, FiClock, FiBookmark, FiInfo, FiLock, FiMail, FiMenu, FiUser } from 'react-icons/fi';
+import { FiActivity, FiRadio, FiClock, FiInfo, FiLock, FiMail, FiMenu, FiUser } from 'react-icons/fi';
 import Scanner from './Scanner';
-import MarketScanner from './MarketScanner';
-import PredictedMovers from './PredictedMovers';
-import WatchlistView from './WatchlistView';
-import HeatmapView from './HeatmapView';
+import WatchlistDashboard from './WatchlistDashboard';
 import AlertHistoryView from './AlertHistoryView';
 import NewsIntelligence from './NewsIntelligence';
 import PremiumAccess from './PremiumAccess';
 import AuthModal from './AuthModal';
-import AccountView from './AccountView';
-import WatchlistDashboard from './WatchlistDashboard';
 import { useAuth } from './AuthContext';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+// --- COMPONENT: WelcomeModal ---
+const WelcomeModal = ({ onClose }) => (
+    <div className="modal-overlay" onClick={onClose}>
+        <div className="welcome-modal" onClick={e => e.stopPropagation()}>
+            <div className="welcome-modal-hd">
+                <span className="sb-wordmark">
+                    <span className="sb-wordmark-early">Early</span><span className="sb-wordmark-bell">Bell</span>
+                </span>
+                <span className="welcome-modal-sub">MARKET INTELLIGENCE</span>
+            </div>
+            <p className="welcome-modal-body">
+                Real-time signal scanning across options flow, volume spikes, social sentiment, insider activity and news — updated hourly.
+            </p>
+            <ul className="welcome-modal-bullets">
+                <li>&gt; 49 US stocks scanned every hour</li>
+                <li>&gt; Signals scored 0–10 and ranked</li>
+                <li>&gt; Custom watchlist for signed-in users</li>
+            </ul>
+            <hr className="welcome-modal-divider" />
+            <p className="welcome-modal-sources">Data via Finnhub, yfinance, ApeWisdom &amp; EDGAR</p>
+            <button className="welcome-modal-cta" onClick={onClose}>ENTER SCANNER →</button>
+        </div>
+    </div>
+);
 
 // --- COMPONENT: HelpModal ---
 const HelpModal = ({ onClose }) => (
@@ -70,8 +92,6 @@ const HelpModal = ({ onClose }) => (
         </div>
     </div>
 );
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 // --- COMPONENT: TickerDetailModal ---
 const TickerDetailModal = ({ modalData, modalLoading, modalError, setModalData, setModalError, polymarketEvents }) => {
@@ -149,15 +169,20 @@ const TickerDetailModal = ({ modalData, modalLoading, modalError, setModalData, 
 export default function App() {
     const { user, signOut } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
-    const isFirstVisit = !localStorage.getItem('earlybell_visited');
-    const [currentView, setCurrentView] = useState(isFirstVisit ? 'welcome' : 'scanner');
+    const [currentView, setCurrentView] = useState('scanner');
     const [modalData, setModalData] = useState(null);
     const [modalLoading, setModalLoading] = useState(false);
     const [modalError, setModalError] = useState(null);
     const [polymarketEvents, setPolymarketEvents] = useState([]);
     const [showHelp, setShowHelp] = useState(false);
     const [showAuthModal, setShowAuthModal] = useState(false);
+    const [showWelcome, setShowWelcome] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    // First-visit welcome modal
+    useEffect(() => {
+        if (!localStorage.getItem('earlybell_visited')) setShowWelcome(true);
+    }, []);
 
     // Auto-close sidebar on resize to mobile
     useEffect(() => {
@@ -188,58 +213,13 @@ export default function App() {
         finally { setModalLoading(false); }
     };
 
-    const handleEnterScanner = () => {
+    const closeWelcome = () => {
         localStorage.setItem('earlybell_visited', 'true');
-        setCurrentView('scanner');
+        setShowWelcome(false);
     };
-
-    const aboutContent = (
-        <div className="content-area landing-page">
-            <h1 className="landing-title">EarlyBell Market Scanner</h1>
-            <p className="landing-tagline">Track unusual options flow, volume spikes, and social sentiment across 49 US stocks</p>
-            <p>Aggregates publicly available market signals into a single dashboard, updated hourly.</p>
-
-            <div className="how-it-works">
-                <h2 className="how-it-works-title">How It Works</h2>
-                <div className="how-it-works-steps">
-                    <div className="step-card">
-                        <span className="step-number">1</span>
-                        <p>Every hour, we pull options flow, trading volume, and Reddit mention data for 49 tickers</p>
-                    </div>
-                    <div className="step-card">
-                        <span className="step-number">2</span>
-                        <p>Each signal is scored 0-10 and combined into a weighted alert score (40% options, 35% volume, 25% social)</p>
-                    </div>
-                    <div className="step-card">
-                        <span className="step-number">3</span>
-                        <p>High-scoring tickers may warrant further research — this is a screening tool, not financial advice</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="about-section">
-                <h2 className="about-title">About</h2>
-                <p className="about-text">
-                    Built by a finance student at the University of Melbourne.
-                    Data sourced from yfinance, Finnhub, ApeWisdom, and Polymarket.
-                </p>
-            </div>
-        </div>
-    );
 
     const renderContent = () => {
         switch (currentView) {
-            case 'welcome':
-                return (
-                    <>
-                        {aboutContent}
-                        <div style={{ textAlign: 'center', marginTop: '10px', marginBottom: '40px' }}>
-                            <button className="landing-button" onClick={handleEnterScanner}>
-                                Take Me to the Scanner
-                            </button>
-                        </div>
-                    </>
-                );
             case 'scanner':
                 return <Scanner polymarketEvents={polymarketEvents} onTickerClick={fetchTickerDetails} onOpenAuth={() => setShowAuthModal(true)} />;
             case 'news':
@@ -248,10 +228,6 @@ export default function App() {
                 return <AlertHistoryView />;
             case 'watchlist':
                 return <WatchlistDashboard onOpenAuth={() => setShowAuthModal(true)} />;
-            case 'account':
-                return <AccountView />;
-            case 'about':
-                return aboutContent;
             case 'premium':
                 return <PremiumAccess />;
             default:
@@ -261,107 +237,102 @@ export default function App() {
 
     return (
         <div className="App">
-            {currentView !== 'welcome' && (
-                <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
-                    {/* Logo area */}
-                    <div className="logo-container">
-                        <span className="sb-logo-collapsed">EB</span>
-                        <div className="sb-wordmark-wrap">
-                            <span className="sb-wordmark">
-                                <span className="sb-wordmark-early">Early</span><span className="sb-wordmark-bell">Bell</span>
-                            </span>
-                            <span className="sb-tagline">Market Intelligence</span>
-                        </div>
-                        <button className="toggle-btn" onClick={() => setIsSidebarOpen(v => !v)} title="Toggle sidebar">
-                            <FiMenu />
-                        </button>
+            <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
+                {/* Logo area */}
+                <div className="logo-container">
+                    <span className="sb-logo-collapsed">EB</span>
+                    <div className="sb-wordmark-wrap">
+                        <span className="sb-wordmark">
+                            <span className="sb-wordmark-early">Early</span><span className="sb-wordmark-bell">Bell</span>
+                        </span>
+                        <span className="sb-tagline">Market Intelligence</span>
                     </div>
-
-                    {/* Navigation */}
-                    <nav className="nav-menu">
-                        {/* Primary nav */}
-                        <div className="nav-group">
-                            <div className={`nav-item ${currentView === 'scanner' ? 'active' : ''}`}
-                                 onClick={() => setCurrentView('scanner')}>
-                                <FiActivity /><span>Scanner</span>
-                            </div>
-                            <div className={`nav-item ${currentView === 'news' ? 'active' : ''}`}
-                                 onClick={() => setCurrentView('news')}>
-                                <FiRadio /><span>News Radar</span>
-                            </div>
-                            <div className={`nav-item ${currentView === 'history' ? 'active' : ''}`}
-                                 onClick={() => setCurrentView('history')}>
-                                <FiClock /><span>Alert History</span>
-                            </div>
-                            <div className={`nav-item ${currentView === 'watchlist' ? 'active' : ''}`}
-                                 onClick={() => setCurrentView('watchlist')}>
-                                <FiUser /><span>My Watchlist</span>
-                            </div>
-                        </div>
-
-                        <hr className="nav-group-divider" />
-
-                        {/* Secondary nav */}
-                        <div className="nav-group">
-                            <div className={`nav-item ${currentView === 'about' ? 'active' : ''}`}
-                                 onClick={() => setCurrentView('about')}>
-                                <FiInfo /><span>How It Works</span>
-                            </div>
-                            <div className={`nav-item ${currentView === 'premium' ? 'active' : ''}`}
-                                 onClick={() => setCurrentView('premium')}>
-                                <FiLock /><span>Premium Access</span>
-                            </div>
-                            <div className="nav-item"
-                                 onClick={() => window.location.href = 'mailto:dipbedford@gmail.com?subject=EarlyBell%20Feedback'}>
-                                <FiMail /><span>Feedback</span>
-                            </div>
-                        </div>
-                    </nav>
-
-                    {/* Ad slot */}
-                    <div className="sb-ad">
-                        <span className="sb-ad-label">SPONSORED</span>
-                        <ins
-                            className="adsbygoogle"
-                            style={{ display: 'block', width: '160px', height: '200px' }}
-                            data-ad-client="YOUR_ADSENSE_CLIENT_ID"
-                            data-ad-slot="YOUR_AD_SLOT_ID"
-                            data-ad-format="fixed"
-                        />
-                    </div>
-
-                    {/* Auth section */}
-                    <div className="sb-auth">
-                        {user ? (
-                            <>
-                                <span className="sb-auth-email">
-                                    {user.email.length > 20 ? user.email.slice(0, 20) + '…' : user.email}
-                                </span>
-                                <button className="sb-auth-signout" onClick={signOut}>
-                                    Sign Out
-                                </button>
-                            </>
-                        ) : (
-                            <button className="sb-auth-signin" onClick={() => setShowAuthModal(true)}>
-                                Sign In
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Status bar */}
-                    <div className="sb-status">
-                        <span className="sb-status-dot" />
-                        <span className="sb-status-label">Online</span>
-                    </div>
+                    <button className="toggle-btn" onClick={() => setIsSidebarOpen(v => !v)} title="Toggle sidebar">
+                        <FiMenu />
+                    </button>
                 </div>
-            )}
 
-            {currentView !== 'welcome' && isMobile && isSidebarOpen && (
+                {/* Navigation */}
+                <nav className="nav-menu">
+                    <div className="nav-group">
+                        <div className={`nav-item ${currentView === 'scanner' ? 'active' : ''}`}
+                             onClick={() => setCurrentView('scanner')}>
+                            <FiActivity /><span>Scanner</span>
+                        </div>
+                        <div className={`nav-item ${currentView === 'news' ? 'active' : ''}`}
+                             onClick={() => setCurrentView('news')}>
+                            <FiRadio /><span>News Radar</span>
+                        </div>
+                        <div className={`nav-item ${currentView === 'history' ? 'active' : ''}`}
+                             onClick={() => setCurrentView('history')}>
+                            <FiClock /><span>Alert History</span>
+                        </div>
+                        <div className={`nav-item ${currentView === 'watchlist' ? 'active' : ''}`}
+                             onClick={() => setCurrentView('watchlist')}>
+                            <FiUser /><span>My Watchlist</span>
+                        </div>
+                    </div>
+
+                    <hr className="nav-group-divider" />
+
+                    <div className="nav-group">
+                        <div className="nav-item" onClick={() => setShowWelcome(true)}>
+                            <FiInfo /><span>How It Works</span>
+                        </div>
+                        <div className={`nav-item ${currentView === 'premium' ? 'active' : ''}`}
+                             onClick={() => setCurrentView('premium')}>
+                            <FiLock /><span>Premium Access</span>
+                        </div>
+                        <div className="nav-item"
+                             onClick={() => window.location.href = 'mailto:dipbedford@gmail.com?subject=EarlyBell%20Feedback'}>
+                            <FiMail /><span>Feedback</span>
+                        </div>
+                    </div>
+                </nav>
+
+                {/* Ad slot */}
+                <div className="sb-ad">
+                    <span className="sb-ad-label">SPONSORED</span>
+                    <ins
+                        className="adsbygoogle"
+                        style={{ display: 'block', width: '160px', height: '200px' }}
+                        data-ad-client="YOUR_ADSENSE_CLIENT_ID"
+                        data-ad-slot="YOUR_AD_SLOT_ID"
+                        data-ad-format="fixed"
+                    />
+                </div>
+
+                {/* Auth section */}
+                <div className="sb-auth">
+                    {user ? (
+                        <>
+                            <span className="sb-auth-email">
+                                {user.email.length > 20 ? user.email.slice(0, 20) + '…' : user.email}
+                            </span>
+                            <button className="sb-auth-signout" onClick={signOut}>
+                                Sign Out
+                            </button>
+                        </>
+                    ) : (
+                        <button className="sb-auth-signin" onClick={() => setShowAuthModal(true)}>
+                            Sign In
+                        </button>
+                    )}
+                </div>
+
+                {/* Status bar */}
+                <div className="sb-status">
+                    <span className="sb-status-dot" />
+                    <span className="sb-status-label">Online</span>
+                </div>
+            </div>
+
+            {isMobile && isSidebarOpen && (
                 <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
             )}
 
-            <div className={`main-content ${currentView === 'welcome' ? 'full' : isSidebarOpen ? 'shifted' : 'collapsed'}`}>
-                {currentView !== 'welcome' && !isSidebarOpen && (
+            <div className={`main-content ${isSidebarOpen ? 'shifted' : 'collapsed'}`}>
+                {!isSidebarOpen && (
                     <button className="toggle-btn-top" onClick={() => setIsSidebarOpen(true)}>
                         <FiMenu />
                     </button>
@@ -383,8 +354,8 @@ export default function App() {
             </button>
 
             {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
-
             {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+            {showWelcome && <WelcomeModal onClose={closeWelcome} />}
 
             <div className="disclaimer-footer">
                 Not financial advice. Use as one data point among many. Always do your own research.
