@@ -1,0 +1,439 @@
+/* ProfilePage.css */
+
+/* ── Page shell — same break-out as Scanner/Watchlist ───────────────────────*/
+.pf-page {
+    width: 100%;
+    max-width: none;
+    margin: 0 -25px;
+    padding: 28px 25px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: calc(100vh - 40px);
+}
+
+/* ── Page header ────────────────────────────────────────────────────────────*/
+.pf-page-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.pf-page-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #334155;
+}
+
+.pf-page-email {
+    font-size: 11px;
+    color: #475569;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────────────────*/
+.pf-card {
+    background: #0a1628;
+    border: 1px solid #1a2740;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.pf-card--danger {
+    border-color: #2a1515;
+}
+
+/* ── Section label ──────────────────────────────────────────────────────────*/
+.pf-section-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #334155;
+    margin-bottom: 4px;
+}
+
+.pf-section-label--danger {
+    color: #ef4444;
+}
+
+/* ── Fields ─────────────────────────────────────────────────────────────────*/
+.pf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pf-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #334155;
+}
+
+.pf-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pf-input {
+    flex: 1;
+    background: #070d16;
+    border: 1px solid #1a2740;
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #e2e8f0;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.pf-input::placeholder { color: #334155; }
+.pf-input:focus        { border-color: #243350; }
+
+.pf-input--readonly {
+    color: #475569;
+    cursor: default;
+}
+
+.pf-input--danger {
+    border-color: #2a1515;
+}
+
+.pf-input--danger:focus {
+    border-color: #ef4444;
+}
+
+.pf-verified {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #22c55e;
+    background: #052e16;
+    border: 1px solid #166534;
+    border-radius: 3px;
+    padding: 3px 7px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.pf-meta {
+    font-size: 11px;
+    color: #334155;
+    margin-top: -4px;
+}
+
+/* ── Action row ─────────────────────────────────────────────────────────────*/
+.pf-action-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.pf-save-btn {
+    height: 32px;
+    padding: 0 14px;
+    background: #0d1526;
+    border: 1px solid #1a2740;
+    border-radius: 6px;
+    color: #3b82f6;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    white-space: nowrap;
+}
+
+.pf-save-btn:hover:not(:disabled) {
+    border-color: #243350;
+    background: #111f3a;
+}
+
+.pf-save-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.pf-status {
+    font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+    font-size: 12px;
+    margin: 0;
+}
+
+.pf-status--ok  { color: #22c55e; }
+.pf-status--err { color: #ef4444; }
+
+/* ── Toggle rows ────────────────────────────────────────────────────────────*/
+.pf-toggle-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 4px 0;
+}
+
+.pf-toggle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.pf-toggle-name {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+
+.pf-toggle-desc {
+    font-size: 12px;
+    color: #475569;
+    line-height: 1.4;
+}
+
+/* Custom pill toggle */
+.pf-toggle {
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.pf-toggle input {
+    display: none;
+}
+
+.pf-toggle-track {
+    display: block;
+    position: relative;
+    width: 36px;
+    height: 20px;
+    background: #1a2740;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.pf-toggle input:checked + .pf-toggle-track {
+    background: #3b82f6;
+}
+
+.pf-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    background: #e2e8f0;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+.pf-toggle input:checked + .pf-toggle-track .pf-toggle-thumb {
+    transform: translateX(16px);
+}
+
+/* ── Slider ─────────────────────────────────────────────────────────────────*/
+.pf-slider-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 4px;
+    border-top: 1px solid #0f1a2d;
+}
+
+.pf-slider-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pf-slider-val {
+    font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+    font-size: 13px;
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.pf-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    background: linear-gradient(to right, #3b82f6 var(--fill, 0%), #111d2e var(--fill, 0%));
+    cursor: pointer;
+}
+
+.pf-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #3b82f6;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #0a1628;
+}
+
+.pf-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #3b82f6;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #0a1628;
+}
+
+.pf-slider-hint {
+    font-size: 11px;
+    color: #334155;
+    line-height: 1.4;
+}
+
+/* ── Security section ───────────────────────────────────────────────────────*/
+.pf-security-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.pf-divider {
+    border: none;
+    border-top: 1px solid #0f1a2d;
+    margin: 4px 0;
+}
+
+.pf-signout-btn {
+    height: 32px;
+    padding: 0 14px;
+    background: transparent;
+    border: 1px solid #1a2740;
+    border-radius: 6px;
+    color: #ef4444;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: border-color 0.15s;
+}
+
+.pf-signout-btn:hover {
+    border-color: #3a1a1a;
+}
+
+/* ── Danger zone ────────────────────────────────────────────────────────────*/
+.pf-delete-btn {
+    height: 32px;
+    padding: 0 14px;
+    background: transparent;
+    border: 1px solid #ef4444;
+    border-radius: 6px;
+    color: #ef4444;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.pf-delete-btn:hover:not(:disabled) {
+    background: #1a0808;
+}
+
+.pf-delete-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.pf-delete-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pf-delete-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pf-link {
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+.pf-link:hover {
+    text-decoration: underline;
+}
+
+/* ── Unauthenticated gate ───────────────────────────────────────────────────*/
+.pf-gate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 14px;
+    text-align: center;
+    padding: 40px 24px;
+}
+
+.pf-gate-heading {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #334155;
+}
+
+.pf-gate-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: #e2e8f0;
+    margin: 0;
+}
+
+.pf-gate-sub {
+    font-size: 14px;
+    color: #475569;
+    max-width: 340px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.pf-signin-btn {
+    height: 36px;
+    padding: 0 24px;
+    background: #0d1a2e;
+    border: 1px solid #3b82f6;
+    border-radius: 3px;
+    color: #3b82f6;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.pf-signin-btn:hover { background: #111f3a; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────────*/
+@media (max-width: 640px) {
+    .pf-page          { margin: 0 -14px; padding: 20px 14px 60px; }
+    .pf-security-row  { flex-direction: column; }
+    .pf-delete-row    { flex-wrap: wrap; }
+}

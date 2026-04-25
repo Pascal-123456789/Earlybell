@@ -7,7 +7,7 @@ import AlertHistoryView from './AlertHistoryView';
 import NewsIntelligence from './NewsIntelligence';
 import PremiumAccess from './PremiumAccess';
 import AuthModal from './AuthModal';
-import AccountView from './AccountView';
+import ProfilePage from './ProfilePage';
 import { useAuth } from './AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -230,7 +230,7 @@ export default function App() {
             case 'watchlist':
                 return <WatchlistDashboard onOpenAuth={() => setShowAuthModal(true)} />;
             case 'account':
-                return <AccountView />;
+                return <ProfilePage onOpenAuth={() => setShowAuthModal(true)} />;
             case 'premium':
                 return <PremiumAccess />;
             default:
