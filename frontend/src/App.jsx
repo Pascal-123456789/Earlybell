@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { FiActivity, FiRadio, FiClock, FiInfo, FiLock, FiMail, FiMenu, FiUser } from 'react-icons/fi';
+import { FiActivity, FiRadio, FiInfo, FiLock, FiMail, FiMenu, FiUser, FiSettings } from 'react-icons/fi';
 import Scanner from './Scanner';
 import WatchlistDashboard from './WatchlistDashboard';
 import AlertHistoryView from './AlertHistoryView';
 import NewsIntelligence from './NewsIntelligence';
 import PremiumAccess from './PremiumAccess';
 import AuthModal from './AuthModal';
+import AccountView from './AccountView';
 import { useAuth } from './AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -25,9 +26,9 @@ const WelcomeModal = ({ onClose }) => (
                 Real-time signal scanning across options flow, volume spikes, social sentiment, insider activity and news — updated hourly.
             </p>
             <ul className="welcome-modal-bullets">
-                <li>&gt; 49 US stocks scanned every hour</li>
-                <li>&gt; Signals scored 0–10 and ranked</li>
-                <li>&gt; Custom watchlist for signed-in users</li>
+                <li>&gt; 100+ US stocks scanned every hour</li>
+                <li>&gt; News Radar aggregates and ranks market-moving headlines</li>
+                <li>&gt; Custom watchlist with full signal breakdown for signed-in users</li>
             </ul>
             <hr className="welcome-modal-divider" />
             <p className="welcome-modal-sources">Data via Finnhub, yfinance, ApeWisdom &amp; EDGAR</p>
@@ -228,6 +229,8 @@ export default function App() {
                 return <AlertHistoryView />;
             case 'watchlist':
                 return <WatchlistDashboard onOpenAuth={() => setShowAuthModal(true)} />;
+            case 'account':
+                return <AccountView />;
             case 'premium':
                 return <PremiumAccess />;
             default:
@@ -263,13 +266,13 @@ export default function App() {
                              onClick={() => setCurrentView('news')}>
                             <FiRadio /><span>News Radar</span>
                         </div>
-                        <div className={`nav-item ${currentView === 'history' ? 'active' : ''}`}
-                             onClick={() => setCurrentView('history')}>
-                            <FiClock /><span>Alert History</span>
-                        </div>
                         <div className={`nav-item ${currentView === 'watchlist' ? 'active' : ''}`}
                              onClick={() => setCurrentView('watchlist')}>
                             <FiUser /><span>My Watchlist</span>
+                        </div>
+                        <div className={`nav-item ${currentView === 'premium' ? 'active' : ''}`}
+                             onClick={() => setCurrentView('premium')}>
+                            <FiLock /><span>Premium Access</span>
                         </div>
                     </div>
 
@@ -279,9 +282,9 @@ export default function App() {
                         <div className="nav-item" onClick={() => setShowWelcome(true)}>
                             <FiInfo /><span>How It Works</span>
                         </div>
-                        <div className={`nav-item ${currentView === 'premium' ? 'active' : ''}`}
-                             onClick={() => setCurrentView('premium')}>
-                            <FiLock /><span>Premium Access</span>
+                        <div className={`nav-item ${currentView === 'account' ? 'active' : ''}`}
+                             onClick={() => setCurrentView('account')}>
+                            <FiSettings /><span>Profile</span>
                         </div>
                         <div className="nav-item"
                              onClick={() => window.location.href = 'mailto:dipbedford@gmail.com?subject=EarlyBell%20Feedback'}>
