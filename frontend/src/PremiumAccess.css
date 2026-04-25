@@ -1,98 +1,184 @@
-.premium-access-page {
-  max-width: 960px;
-  margin: 0 auto;
-}
+/* PremiumAccess.css */
 
-.premium-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.premium-header h2 {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.premium-tagline {
-  color: #aaa;
-  font-size: 1.1rem;
-}
-
-.premium-features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-}
-
-.premium-feature-card {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 12px;
-  padding: 2rem 1.5rem;
-  text-align: center;
-}
-
-.premium-feature-icon {
-  color: var(--foega-primary-color, #22c55e);
-  margin-bottom: 1rem;
-}
-
-.premium-feature-card h3 {
-  font-size: 1.15rem;
-  margin-bottom: 0.75rem;
-}
-
-.premium-feature-card p {
-  color: #aaa;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-.premium-waitlist-section {
-  text-align: center;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 2rem 0;
-}
-
-.premium-waitlist-section h3 {
-  font-size: 1.4rem;
-  margin-bottom: 0.5rem;
-}
-
-.premium-waitlist-section > p {
-  color: #aaa;
-  margin-bottom: 1.25rem;
-}
-
-.waitlist-social-proof {
-  color: var(--foega-primary-color, #22c55e);
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.premium-waitlist-form {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.premium-waitlist-form .subscribe-input {
-  flex: 1;
-}
-
-@media (max-width: 768px) {
-  .premium-features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .premium-waitlist-form {
-    flex-direction: column;
-  }
-
-  .premium-waitlist-form .subscribe-input {
+.pa-page {
     width: 100%;
-  }
+    max-width: none;
+    margin: 0 -25px;
+    padding: 28px 25px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: calc(100vh - 40px);
+}
+
+/* ── Page header ────────────────────────────────────────────────────────────*/
+.pa-page-hd {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.pa-page-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #334155;
+}
+
+.pa-coming-soon {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #3b82f6;
+    background: #0f1f3d;
+    border: 1px solid #1a3a6b;
+    border-radius: 3px;
+    padding: 2px 7px;
+}
+
+.pa-subheading {
+    font-size: 16px;
+    color: #94a3b8;
+    margin: 0 0 24px;
+    font-weight: 400;
+}
+
+/* ── Feature grid ───────────────────────────────────────────────────────────*/
+.pa-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.pa-feature-card {
+    background: #0a1628;
+    border: 1px solid #1a2740;
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pa-feature-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #334155;
+}
+
+.pa-feature-icon {
+    display: flex;
+    align-items: center;
+}
+
+.pa-feature-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #e2e8f0;
+    line-height: 1.3;
+}
+
+.pa-feature-desc {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.6;
+}
+
+/* ── Waitlist card ──────────────────────────────────────────────────────────*/
+.pa-waitlist-card {
+    background: #0a1628;
+    border: 1px solid #1a2740;
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pa-waitlist-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #334155;
+}
+
+.pa-waitlist-text {
+    font-size: 14px;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.pa-waitlist-proof {
+    font-size: 11px;
+    color: #475569;
+    margin: 0;
+}
+
+.pa-waitlist-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.pa-input {
+    flex: 1;
+    min-width: 220px;
+    height: 38px;
+    padding: 0 12px;
+    background: #070d16;
+    border: 1px solid #1a2740;
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.pa-input::placeholder { color: #334155; }
+.pa-input:focus        { border-color: #243350; }
+
+.pa-join-btn {
+    height: 38px;
+    padding: 0 18px;
+    background: #0d1a2e;
+    border: 1px solid #3b82f6;
+    border-radius: 6px;
+    color: #3b82f6;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+
+.pa-join-btn:hover:not(:disabled) { background: #111f3a; }
+.pa-join-btn:disabled { opacity: 0.5; cursor: default; }
+
+.pa-status {
+    font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+    font-size: 13px;
+    margin: 0;
+}
+
+.pa-status--ok  { color: #22c55e; }
+.pa-status--err { color: #ef4444; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────────*/
+@media (max-width: 768px) {
+    .pa-feature-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+    .pa-page { margin: 0 -14px; padding: 20px 14px 60px; }
 }
