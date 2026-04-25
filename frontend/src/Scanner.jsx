@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { FiLock } from 'react-icons/fi';
+
 import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts';
 import TICKER_DATA from './tickerData';
-import { useAuth } from './AuthContext';
 import { useWatchlist } from './useWatchlist';
 import './Scanner.css';
 
@@ -175,7 +174,6 @@ const EmptyState = () => (
 
 // ── Main component ─────────────────────────────────────────────────────────
 const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
-  const { user } = useAuth();
   const { watchlist, addTicker, removeTicker, isWatched } = useWatchlist();
   const [tickers, setTickers]         = useState([]);
   const [loading, setLoading]         = useState(true);
@@ -628,15 +626,6 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
           </button>
         </div>
 
-        {/* Login banner (logged out only) */}
-        {!user && (
-          <div className="sc-login-banner">
-            <span className="sc-login-banner-text">Showing limited data —</span>
-            <button className="sc-login-banner-link" onClick={onOpenAuth}>Sign in free</button>
-            <span className="sc-login-banner-text">to unlock all signals</span>
-          </div>
-        )}
-
         {/* Ticker list */}
         <div className="sc-ticker-list" ref={listRef} role="listbox" aria-label="Tickers">
           {sorted.length === 0 ? (
@@ -646,31 +635,17 @@ const Scanner = ({ polymarketEvents = [], onTickerClick, onOpenAuth }) => {
             const hasSections = tickerConfig &&
               (tickerConfig.social.size > 0 || tickerConfig.movers.size > 0);
 
-            // Global row counter for blur gate (top 3 across all sections)
-            let globalRowIdx = 0;
-
-            const renderRow = (item, badge) => {
-              const rowPos = globalRowIdx++;
-              const blurred = !user && rowPos < 5;
-              return (
-                <div key={item.ticker} style={{ position: 'relative' }}>
-                  <TickerRow
-                    data={item}
-                    selected={selectedTicker === item.ticker}
-                    onClick={() => !blurred && handleSelect(item)}
-                    rowRef={el => { rowRefs.current[item.ticker] = el; }}
-                    sortBy={sortBy}
-                    badge={badge}
-                  />
-                  {blurred && (
-                    <div className="sc-blur-gate" onClick={onOpenAuth}>
-                      <FiLock size={11} />
-                      <span>Sign in free to see top signals</span>
-                    </div>
-                  )}
-                </div>
-              );
-            };
+            const renderRow = (item, badge) => (
+              <TickerRow
+                key={item.ticker}
+                data={item}
+                selected={selectedTicker === item.ticker}
+                onClick={() => handleSelect(item)}
+                rowRef={el => { rowRefs.current[item.ticker] = el; }}
+                sortBy={sortBy}
+                badge={badge}
+              />
+            );
 
             if (!hasSections) {
               return sorted.map(item => renderRow(item, null));
