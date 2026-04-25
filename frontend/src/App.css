@@ -367,33 +367,24 @@ body {
     }
 }
 
-/* ── AdSense sidebar ─────────────────────────────────────────────────────── */
-.ad-sidebar {
-    position: fixed;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 50;
-    width: 160px;
-    background: #0a1628;
-    border-left: 1px solid #1a2740;
-    padding: 12px 8px;
+/* ── Sidebar ad slot ─────────────────────────────────────────────────────── */
+.sb-ad {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
+    padding: 0 0 8px;
 }
 
-.ad-sidebar-label {
+.sb-ad-label {
     font-size: 8px;
-    color: #1e3a5f;
-    text-align: center;
+    color: #334155;
     letter-spacing: 0.1em;
     text-transform: uppercase;
 }
 
-@media (max-width: 768px) {
-    .ad-sidebar { display: none; }
+.sidebar.closed .sb-ad {
+    display: none;
 }
 
 
