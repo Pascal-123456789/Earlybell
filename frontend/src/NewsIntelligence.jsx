@@ -336,7 +336,7 @@ const NewsIntelligence = () => {
                 <div
                   key={i}
                   className={`ni-hl-card${clickable}`}
-                  style={{ '--card-idx': i }}
+                  style={{ animationDelay: `${i * 40}ms` }}
                   onClick={hasUrl ? () => window.open(h.url, '_blank') : undefined}
                 >
                   <div className="ni-hl-card-top">

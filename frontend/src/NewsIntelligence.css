@@ -548,6 +548,6 @@
 
   .ni-hl-card {
     animation: ni-hl-enter 250ms ease-out both;
-    animation-delay: calc(var(--card-idx, 0) * 40ms);
+    animation-fill-mode: both;
   }
 }
