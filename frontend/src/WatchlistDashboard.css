@@ -587,18 +587,48 @@
 
 .wl-empty-search { width: 100%; }
 
-/* ── Scanning state ─────────────────────────────────────────────────────────*/
-.wl-scanning-wrap {
-  padding: 80px 0;
+/* ── Loading state ──────────────────────────────────────────────────────────*/
+.wl-loader-page {
   display: flex;
+  align-items: center;
   justify-content: center;
+  min-height: 60vh;
 }
 
-.wl-scanning-term {
+.wl-loader-wrap {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 16px;
+}
+
+.wl-loader-text {
   font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 14px;
+  color: #3b82f6;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Animated bar chart */
+.wl-bar {
+  fill: #3b82f6;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: wl-bar-pulse 1.2s ease-in-out infinite;
+}
+
+.wl-bar--1 { animation-delay: 0s; }
+.wl-bar--2 { animation-delay: 0.15s; }
+.wl-bar--3 { animation-delay: 0.30s; }
+.wl-bar--4 { animation-delay: 0.45s; }
+.wl-bar--5 { animation-delay: 0.60s; }
+
+@keyframes wl-bar-pulse {
+  0%, 100% { transform: scaleY(0.07); }
+  50%       { transform: scaleY(1); }
 }
 
 /* ── Responsive ─────────────────────────────────────────────────────────────*/

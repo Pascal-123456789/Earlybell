@@ -374,6 +374,18 @@ export default function App() {
 
             {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
 
+            {/* AdSense sidebar — hidden on mobile via CSS */}
+            <div className="ad-sidebar">
+                <div className="ad-sidebar-label">SPONSORED</div>
+                <ins
+                    className="adsbygoogle"
+                    style={{ display: 'block', width: '160px', height: '600px' }}
+                    data-ad-client="YOUR_ADSENSE_CLIENT_ID"
+                    data-ad-slot="YOUR_AD_SLOT_ID"
+                    data-ad-format="fixed"
+                />
+            </div>
+
             <div className="disclaimer-footer">
                 Not financial advice. Use as one data point among many. Always do your own research.
             </div>

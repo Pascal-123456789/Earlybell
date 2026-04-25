@@ -349,10 +349,10 @@ export default function WatchlistDashboard({ onOpenAuth }) {
   const [limitMsg,       setLimitMsg]       = useState(null);
   const searchBoxRef = useRef(null);
 
-  // Scanning animation
+  // Scanning animation — cycles ticker name every 1.5s
   useEffect(() => {
     if (!loading || watchlist.length === 0) return;
-    const id = setInterval(() => setScanPhase(p => (p + 1) % watchlist.length), 700);
+    const id = setInterval(() => setScanPhase(p => (p + 1) % watchlist.length), 1500);
     return () => clearInterval(id);
   }, [loading, watchlist]);
 
@@ -462,17 +462,18 @@ export default function WatchlistDashboard({ onOpenAuth }) {
   // ── INITIAL LOADING ─────────────────────────────────────────────────────
   if (loading && scanResults.length === 0) {
     return (
-      <div className="wl-page">
-        <div className="wl-page-hd">
-          <span className="wl-page-title">
-            MY WATCHLIST · {watchlist.length} TICKER{watchlist.length !== 1 ? 'S' : ''}
-          </span>
-        </div>
-        <div className="wl-scanning-wrap">
-          <div className="wl-scanning-term">
-            <div className="wl-tl wl-tl--dim">&gt; INITIALIZING SIGNAL SCAN</div>
-            <div className="wl-tl wl-tl--blue">&gt; SCANNING {watchlist[scanPhase]}...</div>
-            <div className="wl-tl wl-tl--cursor wl-tl--blue">_</div>
+      <div className="wl-loader-page">
+        <div className="wl-loader-wrap">
+          <svg width="160" height="80" viewBox="0 0 160 80" aria-hidden="true">
+            <rect className="wl-bar wl-bar--1" x="19"  y="40" width="18" height="40" rx="3" />
+            <rect className="wl-bar wl-bar--2" x="45"  y="15" width="18" height="65" rx="3" />
+            <rect className="wl-bar wl-bar--3" x="71"  y="0"  width="18" height="80" rx="3" />
+            <rect className="wl-bar wl-bar--4" x="97"  y="25" width="18" height="55" rx="3" />
+            <rect className="wl-bar wl-bar--5" x="123" y="45" width="18" height="35" rx="3" />
+          </svg>
+          <div className="wl-loader-text">
+            <div>&gt; INITIALIZING SIGNAL SCAN</div>
+            <div>&gt; SCANNING {watchlist[scanPhase] || '...'}...</div>
           </div>
         </div>
       </div>
