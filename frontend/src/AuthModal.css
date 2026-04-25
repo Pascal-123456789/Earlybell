@@ -112,6 +112,61 @@
   border-color: #243350;
 }
 
+/* ── Password input wrapper (input + eye toggle) ── */
+.auth-input-wrap {
+  position: relative;
+}
+
+.auth-input--pw {
+  padding-right: 36px;
+}
+
+.auth-eye-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #334155;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.auth-eye-btn:hover {
+  color: #64748b;
+}
+
+/* ── Password strength bar ── */
+.auth-strength {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.auth-strength-seg {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: #1a2740;
+  transition: background 0.2s;
+}
+
+.auth-seg--weak   { background: #ef4444; }
+.auth-seg--med    { background: #f59e0b; }
+.auth-seg--strong { background: #22c55e; }
+
+/* ── Field-level error (confirm password) ── */
+.auth-field-error {
+  margin: 4px 0 0;
+  font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 11px;
+  color: #ef4444;
+}
+
 /* ── Messages ── */
 .auth-error {
   margin: 0;
