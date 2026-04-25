@@ -478,6 +478,15 @@ body {
     padding: 0 0 8px;
 }
 
+.sb-ad-frame {
+    width: 160px;
+    height: 200px;
+    background: #0a1628;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
 .sb-ad-label {
     font-size: 8px;
     color: #334155;

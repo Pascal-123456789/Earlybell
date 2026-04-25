@@ -242,13 +242,16 @@ export default function App() {
                 {/* Ad slot */}
                 <div className="sb-ad">
                     <span className="sb-ad-label">SPONSORED</span>
-                    <ins
-                        className="adsbygoogle"
-                        style={{ display: 'block', width: '160px', height: '200px' }}
-                        data-ad-client="YOUR_ADSENSE_CLIENT_ID"
-                        data-ad-slot="YOUR_AD_SLOT_ID"
-                        data-ad-format="fixed"
-                    />
+                    <div className="sb-ad-frame">
+                        <ins
+                            className="adsbygoogle"
+                            style={{ display: 'block', width: '160px', height: '200px' }}
+                            data-ad-client="YOUR_ADSENSE_CLIENT_ID"
+                            data-ad-slot="YOUR_AD_SLOT_ID"
+                            data-ad-format="fixed"
+                            data-ad-color-scheme="dark"
+                        />
+                    </div>
                 </div>
 
                 {/* Auth section */}
