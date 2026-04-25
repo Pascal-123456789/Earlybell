@@ -433,24 +433,23 @@ export default function WatchlistDashboard({ onOpenAuth }) {
   // ── UNAUTHENTICATED / EMPTY ─────────────────────────────────────────────
   if (!user || watchlist.length === 0) {
     return (
-      <div className="wl-empty-page">
-        <div className="wl-terminal">
-          <div className="wl-tl wl-tl--dim">&gt; EARLYBELL SIGNAL DASHBOARD v2.0</div>
-          <div className="wl-tl wl-tl--dim">&gt; INITIALIZING...</div>
-          <div className="wl-tl">
-            {!user ? '> NOT AUTHENTICATED' : '> WATCHLIST EMPTY'}
-          </div>
-          <div className="wl-tl wl-tl--cursor">_</div>
-        </div>
-        <p className="wl-empty-msg">
-          {!user
-            ? 'Sign in and add up to 3 tickers to unlock your personal signal dashboard.'
-            : 'Add up to 3 tickers to unlock your personal signal dashboard.'}
+      <div className="wl-gate">
+        <span className="sb-wordmark wl-gate-logo">
+          <span className="sb-wordmark-early">Early</span><span className="sb-wordmark-bell">Bell</span>
+        </span>
+        <div className="wl-gate-heading">MY WATCHLIST</div>
+        <h2 className="wl-gate-title">Your personal signal dashboard</h2>
+        <p className="wl-gate-sub">
+          Sign in to track up to 3 tickers with full signal analysis, news, and alerts.
         </p>
-        {!user && (
+        <div className="wl-gate-pills">
+          <span className="wl-gate-pill">OPTIONS FLOW</span>
+          <span className="wl-gate-pill">NEWS SENTIMENT</span>
+          <span className="wl-gate-pill">INSIDER ACTIVITY</span>
+        </div>
+        {!user ? (
           <button className="wl-signin-btn" onClick={onOpenAuth}>Sign In</button>
-        )}
-        {user && watchlist.length === 0 && (
+        ) : (
           <div className="wl-empty-search">
             <TickerSearch onPick={handlePickTicker} limitMsg={limitMsg} searchBoxRef={searchBoxRef} />
           </div>
